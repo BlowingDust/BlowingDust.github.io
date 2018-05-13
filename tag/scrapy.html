@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Dust's Blog - scrapy</title>
+        <meta charset="utf-8" />
+        <link href="/feeds/atom.xml" type="application/atom+xml" rel="alternate" title="Dust's Blog Atom Feed" />
+
+        <link href="https://cdn.bootcss.com/muicss/0.9.39/css/mui.min.css" rel="stylesheet">
+        <link href="/theme/css/main.css" rel="stylesheet">
+        <link href="/theme/css/highlight.css" rel="stylesheet">
+</head>
+
+<body id="index" class="home">
+  <div id="container" class="mui-container">
+        <header id="banner" class="body">
+                <h1><a href="/">Dust's Blog <strong></strong></a></h1>
+        </header><!-- /#banner -->
+        <nav id="menu"><ul>
+            <li>
+              <div class="index-cat"><a href="/">Index</a></div>
+            </li>
+              <li>
+                <div  class="last-cat" >
+                  <a href="/category/tech.html">Tech</a>
+                </div>
+              </li>
+        </ul></nav><!-- /#menu -->
+<section id="content" class="mui--divider-top">
+<h2 class="mui--text-center">Tag - scrapy</h2>
+
+<ol id="post-list">
+        <li><article class="hentry ">
+                <header> <h2 class="entry-title"><a href="/scrapy-start-requests-trap.html" rel="bookmark">Scrapy 暗坑之 start_requests</a></h2> </header>
+<footer class="post-info">
+    <div class="category-info">
+        📁 <a href="/category/tech.html">Tech</a>
+    </div>
+    <p class="tag-info">
+ 📌             <a href="/tag/python.html">python</a>,            <a href="/tag/scrapy.html">scrapy</a>    </p>
+    <time class="published" datetime="2018-03-01T14:03:42+08:00">
+      🖊️ 2018-03-01 14:03:42
+    </time>
+  </footer><!-- /.post-info -->                <div class="entry-content"> <p>众所周知，Scrapy 默认会过滤重复的 URL，不会重复抓取相同的 URL，除非显式指定。</p>
+<p>于是随便写了一个爬图片地址的小虫，然而不知道为什么总会爬两次 baidu 首页，你能看出错在哪里吗？</p>
+<div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">ImageSpider</span><span class="p">(</span><span class="n">scrapy</span><span class="o">.</span><span class="n">Spider</span><span class="p">):</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;images&quot;</span>
+    <span class="n">allowed_domains</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;www.baidu.com&quot;</span><span class="p">]</span>
+    <span class="n">start_urls</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;https://www.baidu.com/&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">parse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">response</span><span class="p">):</span>
+        <span class="n">images</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">xpath</span><span class="p">(</span><span class="s1">&#39;//img/@src&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">extract</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">image</span> <span class="ow">in</span> <span class="n">images</span><span class="p">:</span>
+            <span class="n">image_item</span> <span class="o">=</span> <span class="n">ImageItem</span><span class="p">()</span>
+            <span class="n">image_item</span><span class="p">[</span><span class="s1">&#39;img_url&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">urljoin</span><span class="p">(</span><span class="n">image</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+            <span class="k">yield …</span></pre></div> </div><!-- /.entry-content -->
+                <div class="read-more">
+                    <a class="read-more-link" href="/scrapy-start-requests-trap.html">>> Read More</a>
+                </div>
+        </article></li>
+</ol><!-- /#posts-list -->
+</section><!-- /#content -->
+        <footer id="contentinfo" class="body mui--divider-top">
+                <address id="about" class="vcard body">
+                Powered by <a href="https://github.com/getpelican/pelican">Pelican</a>
+                Theme <a href="/">Autism</a>.
+                </address><!-- /#about -->
+        </footer><!-- /#contentinfo -->
+  </div>
+</body>
+</html>

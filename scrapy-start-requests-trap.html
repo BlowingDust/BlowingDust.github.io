@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Dust's Blog</title>
+        <meta charset="utf-8" />
+        <link href="/feeds/atom.xml" type="application/atom+xml" rel="alternate" title="Dust's Blog Atom Feed" />
+
+        <link href="https://cdn.bootcss.com/muicss/0.9.39/css/mui.min.css" rel="stylesheet">
+        <link href="/theme/css/main.css" rel="stylesheet">
+        <link href="/theme/css/highlight.css" rel="stylesheet">
+
+
+    <meta name="tags" content="python" />
+    <meta name="tags" content="scrapy" />
+
+</head>
+
+<body id="index" class="home">
+  <div id="container" class="mui-container">
+        <header id="banner" class="body">
+                <h1><a href="/">Dust's Blog <strong></strong></a></h1>
+        </header><!-- /#banner -->
+        <nav id="menu"><ul>
+            <li>
+              <div class="index-cat"><a href="/">Index</a></div>
+            </li>
+              <li class="active">
+                <div  class="last-cat" >
+                  <a href="/category/tech.html">Tech</a>
+                </div>
+              </li>
+        </ul></nav><!-- /#menu -->
+<section id="content" class="body">
+  <header>
+    <h2 class="entry-title">
+      <a href="/scrapy-start-requests-trap.html" rel="bookmark">Scrapy 暗坑之 start_requests</a></h2>
+ 
+  </header>
+<footer class="post-info">
+    <div class="category-info">
+        📁 <a href="/category/tech.html">Tech</a>
+    </div>
+    <p class="tag-info">
+ 📌             <a href="/tag/python.html">python</a>,            <a href="/tag/scrapy.html">scrapy</a>    </p>
+    <time class="published" datetime="2018-03-01T14:03:42+08:00">
+      🖊️ 2018-03-01 14:03:42
+    </time>
+  </footer><!-- /.post-info -->  <div class="entry-content">
+    <p>众所周知，Scrapy 默认会过滤重复的 URL，不会重复抓取相同的 URL，除非显式指定。</p>
+<p>于是随便写了一个爬图片地址的小虫，然而不知道为什么总会爬两次 baidu 首页，你能看出错在哪里吗？</p>
+<div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">ImageSpider</span><span class="p">(</span><span class="n">scrapy</span><span class="o">.</span><span class="n">Spider</span><span class="p">):</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;images&quot;</span>
+    <span class="n">allowed_domains</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;www.baidu.com&quot;</span><span class="p">]</span>
+    <span class="n">start_urls</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;https://www.baidu.com/&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">parse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">response</span><span class="p">):</span>
+        <span class="n">images</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">xpath</span><span class="p">(</span><span class="s1">&#39;//img/@src&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">extract</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">image</span> <span class="ow">in</span> <span class="n">images</span><span class="p">:</span>
+            <span class="n">image_item</span> <span class="o">=</span> <span class="n">ImageItem</span><span class="p">()</span>
+            <span class="n">image_item</span><span class="p">[</span><span class="s1">&#39;img_url&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">urljoin</span><span class="p">(</span><span class="n">image</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+            <span class="k">yield</span> <span class="n">image_item</span>
+
+        <span class="n">urls</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">xpath</span><span class="p">(</span><span class="s1">&#39;//a/@href&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">extract</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">url</span> <span class="ow">in</span> <span class="n">urls</span><span class="p">:</span>
+            <span class="n">next_url</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">urljoin</span><span class="p">(</span><span class="n">url</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+            <span class="k">yield</span> <span class="n">Request</span><span class="p">(</span><span class="n">next_url</span><span class="p">)</span>
+</pre></div>
+
+
+<p>我想了半天都不明白为什么，以为是过滤器的问题，查了半天资料仍没解决。 后来偶然看了 Spider 源码，才发现坑爹之处。</p>
+<p>原来源码的 start_requests 是这样写的（已忽略无关代码）</p>
+<div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">start_requests</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">url</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_urls</span><span class="p">:</span>
+        <span class="k">yield</span> <span class="n">Request</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">dont_filter</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</pre></div>
+
+
+<p>也就是说，因显式指定了 dont_filter=True，start_urls 中的 URL 在首次请求时不会加入过滤列表中，这样相同的 URL 第二次请求时由于不存在于过滤列表中，导致了二次抓取。</p>
+<p>我实在不明白为什么会有这种矛盾，既然默认过滤重复 URL，那么在源码各个地方都应贯彻这个原则。</p>
+<p>如果只是这样就算了，然而在官方教程中也埋了这样的坑： <a href="https://doc.scrapy.org/en/latest/intro/tutorial.html">Scrapy Tutorial</a>  (<a href="https://github.com/scrapy/scrapy/blob/9dd680d5c94340ac308f1450d9d3dc226a015326/docs/intro/tutorial.rst">备份</a>)</p>
+<p>在 Our first Spider 这一节中，是这样写 start_requests 的</p>
+<div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">start_requests</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="n">urls</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s1">&#39;http://quotes.toscrape.com/page/1/&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;http://quotes.toscrape.com/page/2/&#39;</span><span class="p">,</span>
+    <span class="p">]</span>
+    <span class="k">for</span> <span class="n">url</span> <span class="ow">in</span> <span class="n">urls</span><span class="p">:</span>
+        <span class="k">yield</span> <span class="n">scrapy</span><span class="o">.</span><span class="n">Request</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">parse</span><span class="p">)</span>
+</pre></div>
+
+
+<p>然后在 A shortcut to the start_requests method 一节中表示</p>
+<blockquote>
+<p>Instead of implementing a <code>start_requests()</code> method that generates <code>scrapy.Request</code> objects from URLs, you can just define a <code>start_urls</code> class attribute with a list of URLs. This list will then be used by the default implementation of <code>start_requests()</code> to create the initial requests for your spider</p>
+</blockquote>
+<p>可以把 urls 提取到 start_urls 然后直接 use the default implementation of start_requests()。让人误以为 start_requests 默认实现也没有设置 dont_filter=True。简直就是把全世界所有新手都坑了一遍……</p>
+  </div><!-- /.entry-content -->
+</section>
+        <footer id="contentinfo" class="body mui--divider-top">
+                <address id="about" class="vcard body">
+                Powered by <a href="https://github.com/getpelican/pelican">Pelican</a>
+                Theme <a href="/">Autism</a>.
+                </address><!-- /#about -->
+        </footer><!-- /#contentinfo -->
+  </div>
+</body>
+</html>
