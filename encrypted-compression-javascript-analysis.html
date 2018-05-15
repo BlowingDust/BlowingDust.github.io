@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html>
+<head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Dust's Blog</title>
+        <meta charset="utf-8" />
+        <link href="/feeds/atom.xml" type="application/atom+xml" rel="alternate" title="Dust's Blog Atom Feed" />
+
+        <link href="https://cdn.bootcss.com/muicss/0.9.39/css/mui.min.css" rel="stylesheet">
+        <link href="/theme/css/main.css" rel="stylesheet">
+        <link href="/theme/css/highlight.css" rel="stylesheet">
+
+
+    <meta name="tags" content="python" />
+    <meta name="tags" content="frontend" />
+    <meta name="tags" content="crawler" />
+
+</head>
+
+<body id="index" class="home">
+  <div id="container" class="mui-container">
+        <header id="banner" class="body">
+                <h1><a href="/">Dust's Blog <strong></strong></a></h1>
+        </header><!-- /#banner -->
+        <nav id="menu"><ul>
+            <li>
+              <div class="index-cat"><a href="/">Index</a></div>
+            </li>
+              <li class="active">
+                <div  class="last-cat" >
+                  <a href="/category/tech.html">Tech</a>
+                </div>
+              </li>
+        </ul></nav><!-- /#menu -->
+<section id="content" class="body">
+  <header>
+    <h2 class="entry-title">
+      <a href="/encrypted-compression-javascript-analysis.html" rel="bookmark">数据抓取实践：对加密参数及压缩混淆JS的逆向分析</a></h2>
+ 
+  </header>
+<footer class="post-info">
+    <div class="category-info">
+        📁 <a href="/category/tech.html">Tech</a>
+    </div>
+    <p class="tag-info">
+ 📌             <a href="/tag/python.html">python</a>,            <a href="/tag/frontend.html">frontend</a>,            <a href="/tag/crawler.html">crawler</a>    </p>
+    <time class="published" datetime="2018-05-15T18:40:27+08:00">
+      🖊️ 2018-05-15 18:40:27
+    </time>
+  </footer><!-- /.post-info -->  <div class="entry-content">
+    <p>之前在 V 站上看到一个帖子，内容是楼主想抓取数据的网站做了参数加密，不知如何解密。刚好最近有点空闲时间，可以尝试解密一下网页参数，而且很久没练手了。</p>
+<p>文中会介绍几种分析技巧，需要一点前端知识（总感觉在前端做防爬没什么意义，因为源码都是公开的）。文末附上爬虫 Demo 验证，虽然对于这个案例来说使用 Selenium 可能才是合适的解决方法，但<del>暴力破解才是男人的浪漫！</del> ...嗯本文的重点只是在于分析解密的过程。有些图片因代码过长未包含在内，意会即可。</p>
+<h2>1. 一夫当关 - XHR Breakpoints</h2>
+<p>网站是<a href="https://www.qimai.cn/rank/">七麦数据</a>。我们要抓取的内容是页面上的 App Store 排行榜数据。</p>
+<p>通过分析网络请求我们可以发现，榜单数据是通过 Ajax 请求来获取的。返回的数据格式是明文 Json。</p>
+<p><img alt="image" src="/images/1.png"></p>
+<p>请求参数如下：</p>
+<div class="highlight"><pre><span></span><span class="n">analysis</span><span class="o">:</span> <span class="n">dDB4Fi8wUEF</span><span class="o">...(</span><span class="err">太长，略</span><span class="o">)</span>
+<span class="n">brand</span><span class="o">:</span> <span class="n">all</span>
+<span class="n">country</span><span class="o">:</span> <span class="n">cn</span>
+<span class="n">device</span><span class="o">:</span> <span class="n">iphone</span>
+<span class="n">genre</span><span class="o">:</span> <span class="mi">36</span>
+<span class="n">date</span><span class="o">:</span> <span class="mi">2018</span><span class="o">-</span><span class="mi">05</span><span class="o">-</span><span class="mi">14</span>
+<span class="n">page</span><span class="o">:</span> <span class="mi">1</span>
+</pre></div>
+
+
+<p>各个参数所代表的含义都较为易懂，除了 analysis。猜测是一个经过 Base64 编码后的加密参数，事实上的确如此，隔一段时间再利用相同的 analysis 提交请求时会被拒绝。</p>
+<p>要解密参数，只能去看 JS 的加密代码。我们需要查看是哪部分的 JS 代码发起了请求，一般的方法是点击请求列表的 Initiator 跳转到代码部分。</p>
+<p><img alt="iamge" src="/images/2.png"></p>
+<p><img alt="image" src="/images/3.png"></p>
+<p>不过我更推荐另一种方法：添加 XHR Breakpoints 拦截请求。这样有两个好处，一是可以直接观察代码上下文的变量在发出请求前的数值，二是方便直接调试。此处填入 URL 包含的关键词  <code>indexPlus</code></p>
+<p><img alt="image" src="/images/4.png"></p>
+<p>我们也可以在 Watch 处添加变量 h 进行观察，得知 h 是一个 XHR 对象。</p>
+<p>然后再来看代码……写得乱七八糟的是什么鬼！</p>
+<h2>2. 穿针引线 - Module Require</h2>
+<p>为了应对 Web 应用越来越复杂的趋势，前端趋向模块化开发，各种自动化构建工具成为必不可少的开发利器。</p>
+<p>跳蚤大神说得好呀，若想真正掌握爬虫技术，就要了解一个网站是怎样构建起来的。在此意义上，学习爬虫所需的前置知识还挺多的。</p>
+<p>来观察这堆 JS 中的一段代码。</p>
+<div class="highlight"><pre><span></span><span class="s2">&quot;7O1s&quot;</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">t</span><span class="p">,</span> <span class="nx">e</span><span class="p">,</span> <span class="nx">n</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">r</span> <span class="o">=</span> <span class="nx">n</span><span class="p">(</span><span class="s2">&quot;DIVP&quot;</span><span class="p">)</span>
+        <span class="p">,</span> <span class="nx">i</span> <span class="o">=</span> <span class="nx">n</span><span class="p">(</span><span class="s2">&quot;XSOZ&quot;</span><span class="p">)</span>
+        <span class="p">,</span> <span class="nx">o</span> <span class="o">=</span> <span class="nx">n</span><span class="p">(</span><span class="s2">&quot;kkCw&quot;</span><span class="p">)(</span><span class="s2">&quot;species&quot;</span><span class="p">);</span>
+    <span class="nx">t</span><span class="p">.</span><span class="nx">exports</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">t</span><span class="p">,</span> <span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
+        <span class="kd">var</span> <span class="nx">n</span><span class="p">,</span> <span class="nx">a</span> <span class="o">=</span> <span class="nx">r</span><span class="p">(</span><span class="nx">t</span><span class="p">).</span><span class="nx">constructor</span><span class="p">;</span>
+        <span class="k">return</span> <span class="k">void</span> <span class="mi">0</span> <span class="o">===</span> <span class="nx">a</span> <span class="o">||</span> <span class="k">void</span> <span class="mi">0</span> <span class="o">==</span> <span class="p">(</span><span class="nx">n</span> <span class="o">=</span> <span class="nx">r</span><span class="p">(</span><span class="nx">a</span><span class="p">)[</span><span class="nx">o</span><span class="p">])</span> <span class="o">?</span> <span class="nx">e</span> <span class="o">:</span> <span class="nx">i</span><span class="p">(</span><span class="nx">n</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">},</span>
+<span class="s2">&quot;7UMu&quot;</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">t</span><span class="p">,</span> <span class="nx">e</span><span class="p">,</span> <span class="nx">n</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">r</span> <span class="o">=</span> <span class="nx">n</span><span class="p">(</span><span class="s2">&quot;R9M2&quot;</span><span class="p">);</span>
+    <span class="nx">t</span><span class="p">.</span><span class="nx">exports</span> <span class="o">=</span> <span class="nb">Array</span><span class="p">.</span><span class="nx">isArray</span> <span class="o">||</span> <span class="kd">function</span><span class="p">(</span><span class="nx">t</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="s2">&quot;Array&quot;</span> <span class="o">==</span> <span class="nx">r</span><span class="p">(</span><span class="nx">t</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">},</span>
+<span class="s2">&quot;7gX0&quot;</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">t</span><span class="p">,</span> <span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">n</span> <span class="o">=</span> <span class="nx">t</span><span class="p">.</span><span class="nx">exports</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="nx">version</span><span class="o">:</span> <span class="s2">&quot;2.5.5&quot;</span>
+    <span class="p">};</span>
+    <span class="s2">&quot;number&quot;</span> <span class="o">==</span> <span class="k">typeof</span> <span class="nx">__e</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="nx">__e</span> <span class="o">=</span> <span class="nx">n</span><span class="p">)</span>
+<span class="p">},</span>
+</pre></div>
+
+
+<p>虽然代码经过了混淆，但是依然可以看出类似 <code>7O1s</code> 之类的随机字符串是模块名称，而 <code>var r = n("DIVP")</code> 即引入模块，正常的写法可能是 <code>import a from 'b'</code> 或者 <code>const a = require('b')</code>。</p>
+<p>这里发起 Ajax 请求的函数很可能只是一个被封装了的模块供整个项目调用，粗略看一下函数代码也没有发现计算加密的部分。</p>
+<p>针对这种模块化开发，一个逆向的思路是，只要查看该模块被引用的情况，不断向上追溯，总能找到最初发起请求和加密的函数。</p>
+<p>将网站所有 JS 文件拷贝到本地，检索断点所在的模块名 <code>7GwW</code></p>
+<p><img alt="image" src="/images/5.png"></p>
+<p>得知其由模块 <code>KCLY</code> 引入，接着检索 <code>KCLY</code></p>
+<p><img alt="image" src="/images/6.png"></p>
+<p>得知其有三个模块引入，不怕，我们先选第一个<code>XmWM</code>继续检索，如果没找到再回来</p>
+<p><img alt="image" src="/images/7.png"></p>
+<p>得知其由模块 <code>tIFN</code> 引入，继续检索，由<code>mtWM</code>引入，继续检索</p>
+<p><img alt="image" src="/images/9.png"></p>
+<p>得出最终结果，是由模块 <code>gXmS</code> 组装的请求参数。</p>
+<p>只要找到组装请求的代码，分析过程就算完成了一半。</p>
+<h2>3. 顺藤摸瓜 - Call Stack</h2>
+<p>可能有人要抱怨了，感觉这样查找好麻烦呀，有没有更简便的方法？</p>
+<p>当然有。在理解了第二点分析的模块化组织代码的原理后，我们可以使用更简便的方法——Call Stack。</p>
+<p><img alt="image" src="/images/10.png"></p>
+<p>如图，通过从上至下依次查看调用栈上的代码，检查一下其所在的模块是否是要查找的目标。</p>
+<p>get 方法即是模块 <code>gXmS</code> 中的函数。需要注意的是，此方法在模块的末尾，如果不细心可能会错过。</p>
+<h2>4. 偷天换日 - Hijack The Response</h2>
+<p>先在目标模块 <code>gXmS</code> 下个断点吧</p>
+<p><img alt="image" src="/images/11.png"></p>
+<p>可以看到虽然变量 f 被很机智地用 Base64 重新编码了（不完全是，还有个解密函数，注意这里的 p.g 和 p.a），但是在调试器下其解码值 <code>analysis</code> 很容易暴露。</p>
+<p>不过重点还是在 <code>l.a.interceptors.request.use</code> 的那行，里面是完整的参数组装过程，附这一段代码：</p>
+<div class="highlight"><pre><span></span><span class="nx">l</span><span class="p">.</span><span class="nx">a</span><span class="p">.</span><span class="nx">interceptors</span><span class="p">.</span><span class="nx">request</span><span class="p">.</span><span class="nx">use</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">a</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">try</span> <span class="p">{</span>
+        <span class="kd">var</span> <span class="nx">n</span> <span class="o">=</span> <span class="o">+</span><span class="k">new</span> <span class="nb">Date</span> <span class="o">-</span> <span class="p">(</span><span class="nx">h</span><span class="p">.</span><span class="nx">difftime</span> <span class="o">?</span> <span class="nx">h</span><span class="p">.</span><span class="nx">difftime</span> <span class="o">:</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1515125653845</span>
+            <span class="p">,</span> <span class="nx">e</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+            <span class="p">,</span> <span class="nx">t</span> <span class="o">=</span> <span class="p">[];</span>
+        <span class="k">return</span> <span class="k">void</span> <span class="mi">0</span> <span class="o">===</span> <span class="nx">a</span><span class="p">.</span><span class="nx">params</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="nx">a</span><span class="p">.</span><span class="nx">params</span> <span class="o">=</span> <span class="p">{}),</span>
+        <span class="nx">m</span><span class="p">()(</span><span class="nx">a</span><span class="p">.</span><span class="nx">params</span><span class="p">).</span><span class="nx">forEach</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">n</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nx">n</span> <span class="o">==</span> <span class="nx">f</span><span class="p">)</span>
+                <span class="k">return</span> <span class="o">!</span><span class="mi">1</span><span class="p">;</span>
+            <span class="nx">a</span><span class="p">.</span><span class="nx">params</span><span class="p">.</span><span class="nx">hasOwnProperty</span><span class="p">(</span><span class="nx">n</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="nx">t</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">a</span><span class="p">.</span><span class="nx">params</span><span class="p">[</span><span class="nx">n</span><span class="p">])</span>
+        <span class="p">}),</span>
+        <span class="nx">t</span> <span class="o">=</span> <span class="nx">t</span><span class="p">.</span><span class="nx">sort</span><span class="p">().</span><span class="nx">join</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">),</span>
+        <span class="nx">t</span> <span class="o">=</span> <span class="nb">Object</span><span class="p">(</span><span class="nx">p</span><span class="p">.</span><span class="nx">d</span><span class="p">)(</span><span class="nx">t</span><span class="p">),</span>
+        <span class="nx">t</span> <span class="o">+=</span> <span class="s2">&quot;@#&quot;</span> <span class="o">+</span> <span class="nx">a</span><span class="p">.</span><span class="nx">url</span><span class="p">.</span><span class="nx">replace</span><span class="p">(</span><span class="nx">a</span><span class="p">.</span><span class="nx">baseURL</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">),</span>
+        <span class="nx">t</span> <span class="o">+=</span> <span class="s2">&quot;@#&quot;</span> <span class="o">+</span> <span class="nx">n</span><span class="p">,</span>
+        <span class="nx">t</span> <span class="o">+=</span> <span class="s2">&quot;@#1&quot;</span><span class="p">,</span>
+        <span class="nx">e</span> <span class="o">=</span> <span class="nb">Object</span><span class="p">(</span><span class="nx">p</span><span class="p">.</span><span class="nx">d</span><span class="p">)(</span><span class="nb">Object</span><span class="p">(</span><span class="nx">p</span><span class="p">.</span><span class="nx">g</span><span class="p">)(</span><span class="nx">t</span><span class="p">)),</span>
+        <span class="o">-</span><span class="mi">1</span> <span class="o">==</span> <span class="nx">a</span><span class="p">.</span><span class="nx">url</span><span class="p">.</span><span class="nx">indexOf</span><span class="p">(</span><span class="nx">f</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="nx">a</span><span class="p">.</span><span class="nx">url</span> <span class="o">+=</span> <span class="s2">&quot;?&quot;</span> <span class="o">+</span> <span class="nx">f</span> <span class="o">+</span> <span class="s2">&quot;=&quot;</span> <span class="o">+</span> <span class="nb">encodeURIComponent</span><span class="p">(</span><span class="nx">e</span><span class="p">)),</span>
+        <span class="nx">a</span>
+    <span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="nx">a</span><span class="p">)</span> <span class="p">{}</span>
+<span class="p">},</span> <span class="kd">function</span><span class="p">(</span><span class="nx">a</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="nx">i</span><span class="p">.</span><span class="nx">a</span><span class="p">.</span><span class="nx">reject</span><span class="p">(</span><span class="nx">a</span><span class="p">)</span>
+<span class="p">}),</span>
+</pre></div>
+
+
+<p>代码被用逗号运算符精简了。由于 Chrome 调试器的单步执行是以表达式为单位，因此这里我们无法对重要的变量 t 的每一步转换进行观察调试。</p>
+<p>我们需要对代码进行修改，然后让浏览器运行修改后的代码。方法是劫持 JS 文件。</p>
+<p>具体手段有很多种，比如 Nginx 反代，Fiddler 等。在此我选择 ReRes 插件，用法很简单就不具体介绍了。</p>
+<p><img alt="image" src="/images/14.png"></p>
+<p>劫持后，我们可以随意更改代码以方便输出获取我们想要的信息，如下图我加了一个 v1 中间变量。</p>
+<p><img alt="image" src="/images/15.png"></p>
+<p>通过单步调试后，得出组装的过程，大致步骤如下：</p>
+<ol>
+<li>设置一个时间差变量</li>
+<li>提取查询参数值（除了 analysis）</li>
+<li>排序拼接参数值字符串并 Base64 编码</li>
+<li>拼接自定义字符串</li>
+<li>自定义加密后再 Base64 编码</li>
+<li>拼接 URL</li>
+</ol>
+<p>那么如何得知自定义加密函数和 Base64 编码函数？</p>
+<p>通过这一行 <code>var v1 = Object(p.d)(t);</code> 我们可得知 p.d 是 Base64 编码函数，因为单步调试时可观察到变量 t 经过这行代码后被编码。</p>
+<p>然后看这一行 <code>e = Object(p.d)(Object(p.g)(t));</code>，我们已知 p.d 是 Base64 编码函数，那么 p.g 就是一个未知函数。需要找到 p.g 的函数本体。</p>
+<p>在 Watch 一栏添加 p.g，点击 FunctionLocation 的值，即可跳转到该函数。其实 p.g 同时也是一个解密函数，异或运算经常被用来加解密。</p>
+<p><img alt="image" src="/images/20.png"></p>
+<h2>5. 东搜西罗 - Searching</h2>
+<p>这里再多说一点技巧。由于模块化开发，可能会引用到第三方库的模块，因此我们可以利用模块中的一些附带字符串在网上搜索也许会得到额外的信息。</p>
+<p><img alt="image" src="/images/17.png"></p>
+<p>搜索相关错误信息后得知网页用了 Node.js 的 Buffer 模块。</p>
+<p>进一步分析还发现引入 Buffer 模块的目的之一就是为了方便 Base64 编码。</p>
+<h2>6. 一锤定音 - Crawler</h2>
+<p>最后写一个50行的简单爬虫来验证分析，抓取 iPhone 免费榜单。</p>
+<div class="highlight"><pre><span></span><span class="ch">#!/usr/bin/env python3</span>
+
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">base64</span>
+<span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">from</span> <span class="nn">urllib.parse</span> <span class="kn">import</span> <span class="n">urlencode</span>
+
+
+<span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;Accept&quot;</span><span class="p">:</span> <span class="s2">&quot;application/json, text/plain, */*&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Referer&quot;</span><span class="p">:</span> <span class="s2">&quot;https://www.qimai.cn/rank&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;User-Agent&quot;</span><span class="p">:</span> <span class="s2">&quot;Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:57.0) Gecko/20100101 Firefox/59.0&quot;</span>
+<span class="p">}</span>
+
+<span class="n">params</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;brand&quot;</span><span class="p">:</span> <span class="s2">&quot;all&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;country&quot;</span><span class="p">:</span> <span class="s2">&quot;cn&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;date&quot;</span><span class="p">:</span> <span class="s2">&quot;2018-05-14&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;device&quot;</span><span class="p">:</span> <span class="s2">&quot;iphone&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;genre&quot;</span><span class="p">:</span> <span class="s2">&quot;36&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;page&quot;</span><span class="p">:</span> <span class="mi">1</span>
+<span class="p">}</span>
+
+
+<span class="c1"># 自定义加密函数</span>
+<span class="k">def</span> <span class="nf">encrypt</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="s2">&quot;9d1abd758c043319aee5ee1c0e3f26c6&quot;</span><span class="p">):</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+    <span class="n">sl</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+    <span class="n">nl</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">sl</span><span class="p">):</span>
+        <span class="n">s</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="nb">chr</span><span class="p">(</span><span class="nb">ord</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">^</span> <span class="nb">ord</span><span class="p">(</span><span class="n">n</span><span class="p">[</span><span class="n">i</span> <span class="o">%</span> <span class="n">nl</span><span class="p">]))</span>
+    <span class="k">return</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="c1"># iPhone 免费榜单</span>
+    <span class="c1"># 提取查询参数值并排序</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">params</span><span class="o">.</span><span class="n">values</span><span class="p">()]))</span>
+    <span class="c1"># Base64 Encode</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64encode</span><span class="p">(</span><span class="nb">bytes</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;ascii&quot;</span><span class="p">))</span>
+    <span class="c1"># 时间差</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">((</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">*</span> <span class="mi">1000</span> <span class="o">-</span> <span class="mi">1515125653845</span><span class="p">)))</span>
+    <span class="c1"># 拼接自定义字符串</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="s2">&quot;@#&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">s</span><span class="o">.</span><span class="n">decode</span><span class="p">(),</span> <span class="s2">&quot;/rank/indexPlus/brand_id/1&quot;</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="s2">&quot;1&quot;</span><span class="p">])</span>
+    <span class="c1"># 自定义加密 &amp; Base64 Encode</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64encode</span><span class="p">(</span><span class="nb">bytes</span><span class="p">(</span><span class="n">encrypt</span><span class="p">(</span><span class="n">s</span><span class="p">),</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;ascii&quot;</span><span class="p">))</span>
+    <span class="c1"># 拼接 URL</span>
+    <span class="n">params</span><span class="p">[</span><span class="s2">&quot;analysis&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="s2">&quot;https://api.qimai.cn/rank/indexPlus/brand_id/1?{}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">urlencode</span><span class="p">(</span><span class="n">params</span><span class="p">))</span>
+    <span class="c1"># 发起请求</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">)</span>
+    <span class="n">j</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+
+<p>EOF</p>
+  </div><!-- /.entry-content -->
+</section>
+        <footer id="contentinfo" class="body mui--divider-top">
+                <address id="about" class="vcard body">
+                Powered by <a href="https://github.com/getpelican/pelican">Pelican</a>.
+                Theme <a href="/">Autism</a>.
+                </address><!-- /#about -->
+        </footer><!-- /#contentinfo -->
+  </div>
+
+  <script defer src="/theme/js/image.js"></script>
+</body>
+</html>

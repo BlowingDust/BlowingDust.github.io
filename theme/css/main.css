@@ -26,6 +26,12 @@ pre, code {
     margin: 0px;
 }
 
+code {
+    background-color: #3c3f41;
+    padding: 0px 3px;
+    border-radius: 3px;
+}
+
 .category-info, .tag-info {
     display: inline;
 }
@@ -69,7 +75,7 @@ blockquote {
 }
 
 address#about {
-    margin-top: 10px;
+    margin: 10px 0px;
     opacity: 0.5;
 }
 
@@ -80,7 +86,6 @@ address#about {
 #contentinfo {
     margin-top: 20px;
     border-top-color : #3c3f41;
-    padding: 0px 10px;
 }
 
 #about {
@@ -89,6 +94,15 @@ address#about {
 
 .entry-content {
     margin-top: 10px;
+}
+
+.entry-content img {
+    max-width: 100%;
+    margin: 5px 0px;
+}
+
+.entry-content img:hover {
+    cursor: pointer;
 }
 
 .read-more {
