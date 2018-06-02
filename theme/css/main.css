@@ -74,7 +74,7 @@ blockquote {
     opacity: .7;
 }
 
-address#about {
+address#about, #cc {
     margin: 10px 0px;
     opacity: 0.5;
 }
@@ -89,7 +89,7 @@ address#about {
 }
 
 #about {
-    text-align: right;
+    float: right;
 }
 
 .entry-content {
