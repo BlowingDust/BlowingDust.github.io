@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="referrer" content="no-referrer">
+        <title>Dust's Blog - docker</title>
+        <meta charset="utf-8" />
+        <link href="/feeds/atom.xml" type="application/atom+xml" rel="alternate" title="Dust's Blog Atom Feed" />
+
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/muicss@0.9.41/dist/css/mui.min.css"
+              integrity="sha256-oX1CoieDE574GYL7nKAFSFOt8BdQzeKvATYS4VqFqNw=" crossorigin="anonymous">
+        <link href="/theme/css/main.css" rel="stylesheet">
+        <link href="/theme/css/highlight.css" rel="stylesheet">
+</head>
+
+<body id="index" class="home">
+  <div id="container" class="mui-container">
+        <header id="banner" class="body">
+                <h1><a href="/">Dust's Blog <strong></strong></a></h1>
+        </header><!-- /#banner -->
+        <nav id="menu"><ul>
+            <li>
+              <div class="index-cat"><a href="/">Index</a></div>
+            </li>
+              <li>
+                <div  class="last-cat" >
+                  <a href="/category/tech.html">Tech</a>
+                </div>
+              </li>
+        </ul></nav><!-- /#menu -->
+<section id="content" class="mui--divider-top">
+<h2 class="mui--text-center">Tag - docker</h2>
+
+<ol id="post-list">
+        <li><article class="hentry ">
+                <header> <h2 class="entry-title"><a href="/phpMyAdmin-docker-config.html" rel="bookmark">phpMyAdmin Docker 简单配置</a></h2> </header>
+<footer class="post-info">
+    <div class="category-info">
+        📁 <a href="/category/tech.html">Tech</a>
+    </div>
+    <p class="tag-info">
+ 📌             <a href="/tag/docker.html">docker</a>,            <a href="/tag/phpmyadmin.html">phpMyAdmin</a>    </p>
+    <time class="published" datetime="2018-06-21T16:43:41+08:00">
+      🖊️ 2018-06-21 16:43:41
+    </time>
+  </footer><!-- /.post-info -->                <div class="entry-content"> <p>phpMyAdmin（以下简称 PMA ）的数据字典（Data Dictionary）对我来说是一个比较有用的功能（实际上我只用这个功能...），可以以网页形式浏览所有表、视图、字段、索引、注释等，在一个有数百张表的数据库中可以快速检索所需信息。</p>
+<p><img alt="image" src="/images/pma_data_dict.png"></p>
+<p>利用 Docker 可以方便快速地在本地部署 PMA。</p>
+<p>下载</p>
+<p><code>docker pull phpmyadmin/phpmyadmin</code></p>
+<p>运行</p>
+<p><code>docker run --name PMA -d -p 8080:80 --restart=always -e PMA_ARBITRARY=1 -v /path/to/phpmyadmin/config.user.inc.php:/etc/phpmyadmin/config.user.inc …</code></p> </div><!-- /.entry-content -->
+                <div class="read-more">
+                    <a class="read-more-link" href="/phpMyAdmin-docker-config.html">>> Read More</a>
+                </div>
+        </article></li>
+</ol><!-- /#posts-list -->
+</section><!-- /#content -->
+
+        <footer id="contentinfo" class="body mui--divider-top">
+          <a rel="license" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh">
+            <img id="cc" src="/images/cc.80x15.png" alt="CC BY-SA"></a>
+                <address id="about" class="vcard body">
+                Powered by <a href="https://github.com/getpelican/pelican">Pelican</a>.
+                Theme <a href="/">Autism</a>.
+                </address><!-- /#about -->
+        </footer><!-- /#contentinfo -->
+  </div>
+
+  <script defer src="/theme/js/image.js"></script>
+</body>
+</html>

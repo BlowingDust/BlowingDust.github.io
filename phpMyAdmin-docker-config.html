@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="referrer" content="no-referrer">
+          <title>Dust's Blog</title>
+        <meta charset="utf-8" />
+        <link href="/feeds/atom.xml" type="application/atom+xml" rel="alternate" title="Dust's Blog Atom Feed" />
+
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/muicss@0.9.41/dist/css/mui.min.css"
+              integrity="sha256-oX1CoieDE574GYL7nKAFSFOt8BdQzeKvATYS4VqFqNw=" crossorigin="anonymous">
+        <link href="/theme/css/main.css" rel="stylesheet">
+        <link href="/theme/css/highlight.css" rel="stylesheet">
+
+
+    <meta name="tags" content="docker" />
+    <meta name="tags" content="phpMyAdmin" />
+
+</head>
+
+<body id="index" class="home">
+  <div id="container" class="mui-container">
+        <header id="banner" class="body">
+                <h1><a href="/">Dust's Blog <strong></strong></a></h1>
+        </header><!-- /#banner -->
+        <nav id="menu"><ul>
+            <li>
+              <div class="index-cat"><a href="/">Index</a></div>
+            </li>
+              <li class="active">
+                <div  class="last-cat" >
+                  <a href="/category/tech.html">Tech</a>
+                </div>
+              </li>
+        </ul></nav><!-- /#menu -->
+<section id="content" class="body">
+  <header>
+    <h2 class="entry-title">
+      <a href="/phpMyAdmin-docker-config.html" rel="bookmark">phpMyAdmin Docker 简单配置</a></h2>
+ 
+  </header>
+<footer class="post-info">
+    <div class="category-info">
+        📁 <a href="/category/tech.html">Tech</a>
+    </div>
+    <p class="tag-info">
+ 📌             <a href="/tag/docker.html">docker</a>,            <a href="/tag/phpmyadmin.html">phpMyAdmin</a>    </p>
+    <time class="published" datetime="2018-06-21T16:43:41+08:00">
+      🖊️ 2018-06-21 16:43:41
+    </time>
+  </footer><!-- /.post-info -->  <div class="entry-content">
+    <p>phpMyAdmin（以下简称 PMA ）的数据字典（Data Dictionary）对我来说是一个比较有用的功能（实际上我只用这个功能...），可以以网页形式浏览所有表、视图、字段、索引、注释等，在一个有数百张表的数据库中可以快速检索所需信息。</p>
+<p><img alt="image" src="/images/pma_data_dict.png"></p>
+<p>利用 Docker 可以方便快速地在本地部署 PMA。</p>
+<p>下载</p>
+<p><code>docker pull phpmyadmin/phpmyadmin</code></p>
+<p>运行</p>
+<p><code>docker run --name PMA -d -p 8080:80 --restart=always -e PMA_ARBITRARY=1 -v /path/to/phpmyadmin/config.user.inc.php:/etc/phpmyadmin/config.user.inc.php -v /path/to/phpmyadmin/php.ini:/usr/local/etc/php/conf.d/php.ini phpmyadmin/phpmyadmin</code></p>
+<p><code>-e PMA_ARBITRARY=1</code>  表示默认可连接任意数据库。</p>
+<p>同时我挂载了两个文件到容器中，一个是 PMA 的配置文件，另一个是 PHP 的配置文件。原因是 PMA 的 session 默认超时时间太短（1440秒），经常跳转登录页面影响效率。</p>
+<p>config.user.inc.php</p>
+<div class="highlight"><pre><span></span><span class="cp">&lt;?php</span>
+<span class="nv">$cfg</span><span class="p">[</span><span class="s1">&#39;LoginCookieValidity&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1440000</span><span class="p">;</span>
+</pre></div>
+
+
+<p>php.ini</p>
+<div class="highlight"><pre><span></span><span class="k">[Session]</span>
+<span class="na">session.gc_maxlifetime</span> <span class="o">=</span> <span class="s">1440000</span>
+</pre></div>
+
+
+<p>挂载以上两个配置文件后，我们就可以愉快地使用 PMA 了。</p>
+  </div><!-- /.entry-content -->
+</section>
+        <footer id="contentinfo" class="body mui--divider-top">
+          <a rel="license" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh">
+            <img id="cc" src="/images/cc.80x15.png" alt="CC BY-SA"></a>
+                <address id="about" class="vcard body">
+                Powered by <a href="https://github.com/getpelican/pelican">Pelican</a>.
+                Theme <a href="/">Autism</a>.
+                </address><!-- /#about -->
+        </footer><!-- /#contentinfo -->
+  </div>
+
+  <script defer src="/theme/js/image.js"></script>
+</body>
+</html>
