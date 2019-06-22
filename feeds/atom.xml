@@ -1,5 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Dust's Blog</title><link href="/" rel="alternate"></link><link href="/feeds/atom.xml" rel="self"></link><id>/</id><updated>2018-05-15T18:40:27+08:00</updated><entry><title>数据抓取实践：对加密参数及压缩混淆JS的逆向分析</title><link href="/encrypted-compression-javascript-analysis.html" rel="alternate"></link><published>2018-05-15T18:40:27+08:00</published><updated>2018-05-15T18:40:27+08:00</updated><author><name>Dust</name></author><id>tag:None,2018-05-15:/encrypted-compression-javascript-analysis.html</id><summary type="html">&lt;p&gt;之前在 V 站上看到一个帖子，内容是楼主想抓取数据的网站做了参数加密，不知如何解密。刚好最近有点空闲时间，可以尝试解密一下网页参数，而且很久没练手了。&lt;/p&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Dust's Blog</title><link href="/" rel="alternate"></link><link href="/feeds/atom.xml" rel="self"></link><id>/</id><updated>2018-06-21T16:43:41+08:00</updated><entry><title>phpMyAdmin Docker 简单配置</title><link href="/phpMyAdmin-docker-config.html" rel="alternate"></link><published>2018-06-21T16:43:41+08:00</published><updated>2018-06-21T16:43:41+08:00</updated><author><name>Dust</name></author><id>tag:None,2018-06-21:/phpMyAdmin-docker-config.html</id><summary type="html">&lt;p&gt;phpMyAdmin（以下简称 PMA ）的数据字典（Data Dictionary）对我来说是一个比较有用的功能（实际上我只用这个功能...），可以以网页形式浏览所有表、视图、字段、索引、注释等，在一个有数百张表的数据库中可以快速检索所需信息。&lt;/p&gt;
+&lt;p&gt;&lt;img alt="image" src="/images/pma_data_dict.png"&gt;&lt;/p&gt;
+&lt;p&gt;利用 Docker 可以方便快速地在本地部署 PMA。&lt;/p&gt;
+&lt;p&gt;下载&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;docker pull phpmyadmin/phpmyadmin&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;运行&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;docker run --name PMA -d -p 8080:80 --restart=always -e PMA_ARBITRARY=1 -v /path/to/phpmyadmin/config.user.inc.php:/etc/phpmyadmin/config.user.inc …&lt;/code&gt;&lt;/p&gt;</summary><content type="html">&lt;p&gt;phpMyAdmin（以下简称 PMA ）的数据字典（Data Dictionary）对我来说是一个比较有用的功能（实际上我只用这个功能...），可以以网页形式浏览所有表、视图、字段、索引、注释等，在一个有数百张表的数据库中可以快速检索所需信息。&lt;/p&gt;
+&lt;p&gt;&lt;img alt="image" src="/images/pma_data_dict.png"&gt;&lt;/p&gt;
+&lt;p&gt;利用 Docker 可以方便快速地在本地部署 PMA。&lt;/p&gt;
+&lt;p&gt;下载&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;docker pull phpmyadmin/phpmyadmin&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;运行&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;docker run --name PMA -d -p 8080:80 --restart=always -e PMA_ARBITRARY=1 -v /path/to/phpmyadmin/config.user.inc.php:/etc/phpmyadmin/config.user.inc.php -v /path/to/phpmyadmin/php.ini:/usr/local/etc/php/conf.d/php.ini phpmyadmin/phpmyadmin&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;-e PMA_ARBITRARY=1&lt;/code&gt;  表示默认可连接任意数据库。&lt;/p&gt;
+&lt;p&gt;同时我挂载了两个文件到容器中，一个是 PMA 的配置文件，另一个是 PHP 的配置文件。原因是 PMA 的 session 默认超时时间太短（1440秒），经常跳转登录页面影响效率。&lt;/p&gt;
+&lt;p&gt;config.user.inc.php&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="cp"&gt;&amp;lt;?php&lt;/span&gt;
+&lt;span class="nv"&gt;$cfg&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;LoginCookieValidity&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;1440000&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;php.ini&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;[Session]&lt;/span&gt;
+&lt;span class="na"&gt;session.gc_maxlifetime&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;1440000&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;挂载以上两个配置文件后，我们就可以愉快地使用 PMA 了。&lt;/p&gt;</content><category term="docker"></category><category term="phpMyAdmin"></category></entry><entry><title>数据抓取实践：对加密参数及压缩混淆JS的逆向分析</title><link href="/encrypted-compression-javascript-analysis.html" rel="alternate"></link><published>2018-05-15T18:40:27+08:00</published><updated>2018-05-15T18:40:27+08:00</updated><author><name>Dust</name></author><id>tag:None,2018-05-15:/encrypted-compression-javascript-analysis.html</id><summary type="html">&lt;p&gt;之前在 V 站上看到一个帖子，内容是楼主想抓取数据的网站做了参数加密，不知如何解密。刚好最近有点空闲时间，可以尝试解密一下网页参数，而且很久没练手了。&lt;/p&gt;
 &lt;p&gt;文中会介绍几种分析技巧，需要一点前端知识（总感觉在前端做防爬没什么意义，因为源码都是公开的）。文末附上爬虫 Demo 验证，虽然对于这个案例来说使用 Selenium 可能才是合适的解决方法，但&lt;del&gt;暴力破解才是男人的浪漫！&lt;/del&gt; ...嗯本文的重点只是在于分析解密的过程。有些图片因代码过长未包含在内，意会即可。&lt;/p&gt;
 &lt;h2&gt;1. 一夫当关 - XHR Breakpoints&lt;/h2&gt;
 &lt;p&gt;网站是&lt;a href="https://www.qimai.cn/rank/"&gt;七麦数据&lt;/a&gt;。我们要抓取的内容是页面上的 App Store 排行榜数据。&lt;/p&gt;
