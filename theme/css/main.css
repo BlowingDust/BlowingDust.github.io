@@ -26,6 +26,10 @@ pre, code {
     margin: 0px;
 }
 
+pre {
+    overflow: auto;
+}
+
 code {
     background-color: #3c3f41;
     padding: 0px 3px;

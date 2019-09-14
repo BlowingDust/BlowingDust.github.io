@@ -4,7 +4,7 @@
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta name="referrer" content="no-referrer">
-        <title>Dust's Blog - docker</title>
+        <title>Dust's Blog - raspberry</title>
         <meta charset="utf-8" />
 
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/muicss@0.9.41/dist/css/mui.min.css"
@@ -29,29 +29,29 @@
               </li>
         </ul></nav><!-- /#menu -->
 <section id="content" class="mui--divider-top">
-<h2 class="mui--text-center">Tag - docker</h2>
+<h2 class="mui--text-center">Tag - raspberry</h2>
 
 <ol id="post-list">
         <li><article class="hentry ">
-                <header> <h2 class="entry-title"><a href="/phpMyAdmin-docker-config.html" rel="bookmark">phpMyAdmin Docker 简单配置</a></h2> </header>
+                <header> <h2 class="entry-title"><a href="/raspberry-downloader.html" rel="bookmark">利用树莓派进行挂机下载</a></h2> </header>
 <footer class="post-info">
     <div class="category-info">
         📁 <a href="/category/tech.html">Tech</a>
     </div>
     <p class="tag-info">
- 📌             <a href="/tag/docker.html">docker</a>,            <a href="/tag/phpmyadmin.html">phpMyAdmin</a>    </p>
-    <time class="published" datetime="2019-06-21T16:43:41+08:00">
-      🖊️ 2019-06-21 16:43:41
+ 📌             <a href="/tag/raspberry.html">raspberry</a>    </p>
+    <time class="published" datetime="2019-09-07T18:59:00+08:00">
+      🖊️ 2019-09-07 18:59:00
     </time>
-  </footer><!-- /.post-info -->                <div class="entry-content"> <p>phpMyAdmin（以下简称 PMA ）的数据字典（Data Dictionary）对我来说是一个比较有用的功能（实际上我只用这个功能...），可以以网页形式浏览所有表、视图、字段、索引、注释等，在一个有数百张表的数据库中可以快速检索所需信息。</p>
-<p><img alt="image" src="/images/pma_data_dict.png"></p>
-<p>利用 Docker 可以方便快速地在本地部署 PMA。</p>
-<p>下载</p>
-<p><code>docker pull phpmyadmin/phpmyadmin</code></p>
-<p>运行</p>
-<p><code>docker run --name PMA -d -p 8080:80 --restart=always -e PMA_ARBITRARY=1 -v /path/to/phpmyadmin/config.user.inc.php:/etc/phpmyadmin/config.user.inc …</code></p> </div><!-- /.entry-content -->
+  </footer><!-- /.post-info -->                <div class="entry-content"> <p>一直有买 NAS 做下载姬的想法，但见过太多人买回家吃灰的例子，而且我的松鼠症并不严重，所以犹豫着。直到听闻树莓派4代发售，价格比 NAS 便宜，正好家里也有闲置 U 盘，思来想去，果然还是树莓派比较适合老子.jpg</p>
+<h2>1. 准备工作</h2>
+<p>在淘宝找到相关店家，根据自己的需要选择相应套餐，因为需要预订，大概一周后到货。</p>
+<p>树莓派到手后，先将 Raspbian 系统镜像写入 micro SD 卡，推荐使用 <a href="https://www.raspberrypi.org/documentation/installation/installing-images/README.md">官方教程</a> 提到的 balenaEtcher，十分方便。</p>
+<p><img alt="balenaEtcher" src="images/etchcer.jpg"></p>
+<p>之后配置远程 SSH 和 wifi（如果选择直接在树莓派上外接显示器和键盘就不用进行这一步），简单来说就是在根目录新建 SSH 文件和 wpa_supplicant.conf 文件，文件内容参考 <a href="https://www.raspberrypi.org/documentation/configuration/wireless/headless.md">官方教程</a> 。</p>
+<p>配置好后，插入 SD …</p> </div><!-- /.entry-content -->
                 <div class="read-more">
-                    <a class="read-more-link" href="/phpMyAdmin-docker-config.html">>> Read More</a>
+                    <a class="read-more-link" href="/raspberry-downloader.html">>> Read More</a>
                 </div>
         </article></li>
 </ol><!-- /#posts-list -->
