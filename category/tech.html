@@ -33,6 +33,40 @@
 
 <ol id="post-list">
         <li><article class="hentry ">
+                <header> <h2 class="entry-title"><a href="/windows-rsync-backup.html" rel="bookmark">在 Windows 中使用 rsync 备份文件</a></h2> </header>
+<footer class="post-info">
+    <div class="category-info">
+        📁 <a href="/category/tech.html">Tech</a>
+    </div>
+    <p class="tag-info">
+ 📌             <a href="/tag/rsync.html">rsync</a>    </p>
+    <time class="published" datetime="2021-01-24T11:11:00+08:00">
+      🖊️ 2021-01-24 11:11:00
+    </time>
+  </footer><!-- /.post-info -->                <div class="entry-content"> <p>笔记本使用的是固态硬盘，有掉盘风险，尽管已用 OneDrive 备份了重要文件，但仍有很多文件属于“虽然没那么重要，但如果丢失了也很心痛”的情况。于是决定使用移动固态硬盘做冷备份。</p>
+<p>在 Windows 中，rsync 可通过 Cygwin 安装。</p>
+<p>执行以下命令可进行测试备份：</p>
+<div class="highlight"><pre><span></span><code><span class="err">rsync -gloptrn --delete $srcdir $dstdir</span>
+</code></pre></div>
+
+<p>参数解析：</p>
+<div class="highlight"><pre><span></span><code><span class="err">g - 保留所属组信息</span>
+<span class="err">l - 保留软链接</span>
+<span class="err">o - 保留所属人信息</span>
+<span class="err">p - 保留权限信息</span>
+<span class="err">t - 保留修改时间</span>
+<span class="err">r - 递归子目录</span>
+<span class="err">n - 测试执行，不进行实际文件复制操作</span>
+<span class="err">delete - 删除目标目录（$dstdir）下无关的文件</span>
+</code></pre></div>
+
+<p>建议开始时先使用文件数较少的目录进行测试，确认无误后，删除参数 n 即可执行实际备份操作。</p>
+<p>经测试，部分文件可能会读取失败 …</p> </div><!-- /.entry-content -->
+                <div class="read-more">
+                    <a class="read-more-link" href="/windows-rsync-backup.html">>> Read More</a>
+                </div>
+        </article></li>
+        <li><article class="hentry mui--divider-top ">
                 <header> <h2 class="entry-title"><a href="/raspberry-downloader.html" rel="bookmark">利用树莓派进行挂机下载</a></h2> </header>
 <footer class="post-info">
     <div class="category-info">
@@ -47,7 +81,7 @@
 <h2>1. 准备工作</h2>
 <p>在淘宝找到相关店家，根据自己的需要选择相应套餐，因为需要预订，大概一周后到货。</p>
 <p>树莓派到手后，先将 Raspbian 系统镜像写入 micro SD 卡，推荐使用 <a href="https://www.raspberrypi.org/documentation/installation/installing-images/README.md">官方教程</a> 提到的 balenaEtcher，十分方便。</p>
-<p><img alt="balenaEtcher" src="images/etchcer.jpg"></p>
+<p><img alt="balenaEtcher" src="/images/etchcer.jpg"></p>
 <p>之后配置远程 SSH 和 wifi（如果选择直接在树莓派上外接显示器和键盘就不用进行这一步），简单来说就是在根目录新建 SSH 文件和 wpa_supplicant.conf 文件，文件内容参考 <a href="https://www.raspberrypi.org/documentation/configuration/wireless/headless.md">官方教程</a> 。</p>
 <p>配置好后，插入 SD …</p> </div><!-- /.entry-content -->
                 <div class="read-more">
@@ -94,10 +128,10 @@
 <p>通过分析网络请求我们可以发现，榜单数据是通过 Ajax 请求来获取的。返回的数据格式是明文 Json。</p>
 <p><img alt="image" src="/images/1.png"></p>
 <p>请求参数如下：</p>
-<div class="highlight"><pre><span></span><span class="n">analysis</span><span class="o">:</span> <span class="n">dDB4Fi8wUEF</span><span class="o">...(</span><span class="err">太长，略</span><span class="o">)</span>
+<div class="highlight"><pre><span></span><code><span class="n">analysis</span><span class="o">:</span> <span class="n">dDB4Fi8wUEF</span><span class="o">...(</span><span class="err">太长，略</span><span class="o">)</span>
 <span class="n">brand</span><span class="o">:</span> <span class="n">all</span>
 <span class="n">country</span><span class="o">:</span> <span class="n">cn</span>
-<span class="n">device</span><span class="o">:</span> <span class="n">iphone …</span></pre></div> </div><!-- /.entry-content -->
+<span class="n">device</span><span class="o">:</span> <span class="n">iphone …</span></code></pre></div> </div><!-- /.entry-content -->
                 <div class="read-more">
                     <a class="read-more-link" href="/encrypted-compression-javascript-analysis.html">>> Read More</a>
                 </div>
@@ -115,7 +149,7 @@
     </time>
   </footer><!-- /.post-info -->                <div class="entry-content"> <p>众所周知，Scrapy 默认会过滤重复的 URL，不会重复抓取相同的 URL，除非显式指定。</p>
 <p>于是随便写了一个爬图片地址的小虫，然而不知道为什么总会爬两次 baidu 首页，你能看出错在哪里吗？</p>
-<div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">ImageSpider</span><span class="p">(</span><span class="n">scrapy</span><span class="o">.</span><span class="n">Spider</span><span class="p">):</span>
+<div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">ImageSpider</span><span class="p">(</span><span class="n">scrapy</span><span class="o">.</span><span class="n">Spider</span><span class="p">):</span>
     <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;images&quot;</span>
     <span class="n">allowed_domains</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;www.baidu.com&quot;</span><span class="p">]</span>
     <span class="n">start_urls</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;https://www.baidu.com/&#39;</span><span class="p">]</span>
@@ -125,7 +159,7 @@
         <span class="k">for</span> <span class="n">image</span> <span class="ow">in</span> <span class="n">images</span><span class="p">:</span>
             <span class="n">image_item</span> <span class="o">=</span> <span class="n">ImageItem</span><span class="p">()</span>
             <span class="n">image_item</span><span class="p">[</span><span class="s1">&#39;img_url&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">urljoin</span><span class="p">(</span><span class="n">image</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
-            <span class="k">yield …</span></pre></div> </div><!-- /.entry-content -->
+            <span class="k">yield …</span></code></pre></div> </div><!-- /.entry-content -->
                 <div class="read-more">
                     <a class="read-more-link" href="/scrapy-start-requests-trap.html">>> Read More</a>
                 </div>

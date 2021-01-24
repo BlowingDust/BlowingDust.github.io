@@ -45,7 +45,7 @@
     </time>
   </footer><!-- /.post-info -->                <div class="entry-content"> <p>众所周知，Scrapy 默认会过滤重复的 URL，不会重复抓取相同的 URL，除非显式指定。</p>
 <p>于是随便写了一个爬图片地址的小虫，然而不知道为什么总会爬两次 baidu 首页，你能看出错在哪里吗？</p>
-<div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">ImageSpider</span><span class="p">(</span><span class="n">scrapy</span><span class="o">.</span><span class="n">Spider</span><span class="p">):</span>
+<div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">ImageSpider</span><span class="p">(</span><span class="n">scrapy</span><span class="o">.</span><span class="n">Spider</span><span class="p">):</span>
     <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;images&quot;</span>
     <span class="n">allowed_domains</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;www.baidu.com&quot;</span><span class="p">]</span>
     <span class="n">start_urls</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;https://www.baidu.com/&#39;</span><span class="p">]</span>
@@ -55,7 +55,7 @@
         <span class="k">for</span> <span class="n">image</span> <span class="ow">in</span> <span class="n">images</span><span class="p">:</span>
             <span class="n">image_item</span> <span class="o">=</span> <span class="n">ImageItem</span><span class="p">()</span>
             <span class="n">image_item</span><span class="p">[</span><span class="s1">&#39;img_url&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">urljoin</span><span class="p">(</span><span class="n">image</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
-            <span class="k">yield …</span></pre></div> </div><!-- /.entry-content -->
+            <span class="k">yield …</span></code></pre></div> </div><!-- /.entry-content -->
                 <div class="read-more">
                     <a class="read-more-link" href="/scrapy-start-requests-trap.html">>> Read More</a>
                 </div>

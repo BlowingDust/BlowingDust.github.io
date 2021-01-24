@@ -4,7 +4,7 @@
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta name="referrer" content="no-referrer">
-        <title>Dust's Blog - raspberry</title>
+        <title>Dust's Blog - rsync</title>
         <meta charset="utf-8" />
 
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/muicss@0.9.41/dist/css/mui.min.css"
@@ -29,29 +29,41 @@
               </li>
         </ul></nav><!-- /#menu -->
 <section id="content" class="mui--divider-top">
-<h2 class="mui--text-center">Tag - raspberry</h2>
+<h2 class="mui--text-center">Tag - rsync</h2>
 
 <ol id="post-list">
         <li><article class="hentry ">
-                <header> <h2 class="entry-title"><a href="/raspberry-downloader.html" rel="bookmark">利用树莓派进行挂机下载</a></h2> </header>
+                <header> <h2 class="entry-title"><a href="/windows-rsync-backup.html" rel="bookmark">在 Windows 中使用 rsync 备份文件</a></h2> </header>
 <footer class="post-info">
     <div class="category-info">
         📁 <a href="/category/tech.html">Tech</a>
     </div>
     <p class="tag-info">
- 📌             <a href="/tag/raspberry.html">raspberry</a>    </p>
-    <time class="published" datetime="2019-09-07T18:59:00+08:00">
-      🖊️ 2019-09-07 18:59:00
+ 📌             <a href="/tag/rsync.html">rsync</a>    </p>
+    <time class="published" datetime="2021-01-24T11:11:00+08:00">
+      🖊️ 2021-01-24 11:11:00
     </time>
-  </footer><!-- /.post-info -->                <div class="entry-content"> <p>一直有买 NAS 做下载姬的想法，但见过太多人买回家吃灰的例子，而且我的松鼠症并不严重，所以犹豫着。直到听闻树莓派4代发售，价格比 NAS 便宜，正好家里也有闲置 U 盘，思来想去，果然还是树莓派比较适合老子.jpg</p>
-<h2>1. 准备工作</h2>
-<p>在淘宝找到相关店家，根据自己的需要选择相应套餐，因为需要预订，大概一周后到货。</p>
-<p>树莓派到手后，先将 Raspbian 系统镜像写入 micro SD 卡，推荐使用 <a href="https://www.raspberrypi.org/documentation/installation/installing-images/README.md">官方教程</a> 提到的 balenaEtcher，十分方便。</p>
-<p><img alt="balenaEtcher" src="/images/etchcer.jpg"></p>
-<p>之后配置远程 SSH 和 wifi（如果选择直接在树莓派上外接显示器和键盘就不用进行这一步），简单来说就是在根目录新建 SSH 文件和 wpa_supplicant.conf 文件，文件内容参考 <a href="https://www.raspberrypi.org/documentation/configuration/wireless/headless.md">官方教程</a> 。</p>
-<p>配置好后，插入 SD …</p> </div><!-- /.entry-content -->
+  </footer><!-- /.post-info -->                <div class="entry-content"> <p>笔记本使用的是固态硬盘，有掉盘风险，尽管已用 OneDrive 备份了重要文件，但仍有很多文件属于“虽然没那么重要，但如果丢失了也很心痛”的情况。于是决定使用移动固态硬盘做冷备份。</p>
+<p>在 Windows 中，rsync 可通过 Cygwin 安装。</p>
+<p>执行以下命令可进行测试备份：</p>
+<div class="highlight"><pre><span></span><code><span class="err">rsync -gloptrn --delete $srcdir $dstdir</span>
+</code></pre></div>
+
+<p>参数解析：</p>
+<div class="highlight"><pre><span></span><code><span class="err">g - 保留所属组信息</span>
+<span class="err">l - 保留软链接</span>
+<span class="err">o - 保留所属人信息</span>
+<span class="err">p - 保留权限信息</span>
+<span class="err">t - 保留修改时间</span>
+<span class="err">r - 递归子目录</span>
+<span class="err">n - 测试执行，不进行实际文件复制操作</span>
+<span class="err">delete - 删除目标目录（$dstdir）下无关的文件</span>
+</code></pre></div>
+
+<p>建议开始时先使用文件数较少的目录进行测试，确认无误后，删除参数 n 即可执行实际备份操作。</p>
+<p>经测试，部分文件可能会读取失败 …</p> </div><!-- /.entry-content -->
                 <div class="read-more">
-                    <a class="read-more-link" href="/raspberry-downloader.html">>> Read More</a>
+                    <a class="read-more-link" href="/windows-rsync-backup.html">>> Read More</a>
                 </div>
         </article></li>
 </ol><!-- /#posts-list -->

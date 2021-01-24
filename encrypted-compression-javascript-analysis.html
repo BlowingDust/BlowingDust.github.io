@@ -57,15 +57,14 @@
 <p>通过分析网络请求我们可以发现，榜单数据是通过 Ajax 请求来获取的。返回的数据格式是明文 Json。</p>
 <p><img alt="image" src="/images/1.png"></p>
 <p>请求参数如下：</p>
-<div class="highlight"><pre><span></span><span class="n">analysis</span><span class="o">:</span> <span class="n">dDB4Fi8wUEF</span><span class="o">...(</span><span class="err">太长，略</span><span class="o">)</span>
+<div class="highlight"><pre><span></span><code><span class="n">analysis</span><span class="o">:</span> <span class="n">dDB4Fi8wUEF</span><span class="o">...(</span><span class="err">太长，略</span><span class="o">)</span>
 <span class="n">brand</span><span class="o">:</span> <span class="n">all</span>
 <span class="n">country</span><span class="o">:</span> <span class="n">cn</span>
 <span class="n">device</span><span class="o">:</span> <span class="n">iphone</span>
 <span class="n">genre</span><span class="o">:</span> <span class="mi">36</span>
 <span class="n">date</span><span class="o">:</span> <span class="mi">2018</span><span class="o">-</span><span class="mi">05</span><span class="o">-</span><span class="mi">14</span>
 <span class="n">page</span><span class="o">:</span> <span class="mi">1</span>
-</pre></div>
-
+</code></pre></div>
 
 <p>各个参数所代表的含义都较为易懂，除了 analysis。猜测是一个经过 Base64 编码后的加密参数，事实上的确如此，隔一段时间再利用相同的 analysis 提交请求时会被拒绝。</p>
 <p>要解密参数，只能去看 JS 的加密代码。我们需要查看是哪部分的 JS 代码发起了请求，一般的方法是点击请求列表的 Initiator 跳转到代码部分。</p>
@@ -79,7 +78,7 @@
 <p>为了应对 Web 应用越来越复杂的趋势，前端趋向模块化开发，各种自动化构建工具成为必不可少的开发利器。</p>
 <p>跳蚤大神说得好呀，若想真正掌握爬虫技术，就要了解一个网站是怎样构建起来的。在此意义上，学习爬虫所需的前置知识还挺多的。</p>
 <p>来观察这堆 JS 中的一段代码。</p>
-<div class="highlight"><pre><span></span><span class="s2">&quot;7O1s&quot;</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">t</span><span class="p">,</span> <span class="nx">e</span><span class="p">,</span> <span class="nx">n</span><span class="p">)</span> <span class="p">{</span>
+<div class="highlight"><pre><span></span><code><span class="s2">&quot;7O1s&quot;</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">t</span><span class="p">,</span> <span class="nx">e</span><span class="p">,</span> <span class="nx">n</span><span class="p">)</span> <span class="p">{</span>
     <span class="kd">var</span> <span class="nx">r</span> <span class="o">=</span> <span class="nx">n</span><span class="p">(</span><span class="s2">&quot;DIVP&quot;</span><span class="p">)</span>
         <span class="p">,</span> <span class="nx">i</span> <span class="o">=</span> <span class="nx">n</span><span class="p">(</span><span class="s2">&quot;XSOZ&quot;</span><span class="p">)</span>
         <span class="p">,</span> <span class="nx">o</span> <span class="o">=</span> <span class="nx">n</span><span class="p">(</span><span class="s2">&quot;kkCw&quot;</span><span class="p">)(</span><span class="s2">&quot;species&quot;</span><span class="p">);</span>
@@ -100,8 +99,7 @@
     <span class="p">};</span>
     <span class="s2">&quot;number&quot;</span> <span class="o">==</span> <span class="k">typeof</span> <span class="nx">__e</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="nx">__e</span> <span class="o">=</span> <span class="nx">n</span><span class="p">)</span>
 <span class="p">},</span>
-</pre></div>
-
+</code></pre></div>
 
 <p>虽然代码经过了混淆，但是依然可以看出类似 <code>7O1s</code> 之类的随机字符串是模块名称，而 <code>var r = n("DIVP")</code> 即引入模块，正常的写法可能是 <code>import a from 'b'</code> 或者 <code>const a = require('b')</code>。</p>
 <p>这里发起 Ajax 请求的函数很可能只是一个被封装了的模块供整个项目调用，粗略看一下函数代码也没有发现计算加密的部分。</p>
@@ -127,7 +125,7 @@
 <p><img alt="image" src="/images/11.png"></p>
 <p>可以看到虽然变量 f 被很机智地用 Base64 重新编码了（不完全是，还有个解密函数，注意这里的 p.g 和 p.a），但是在调试器下其解码值 <code>analysis</code> 很容易暴露。</p>
 <p>不过重点还是在 <code>l.a.interceptors.request.use</code> 的那行，里面是完整的参数组装过程，附这一段代码：</p>
-<div class="highlight"><pre><span></span><span class="nx">l</span><span class="p">.</span><span class="nx">a</span><span class="p">.</span><span class="nx">interceptors</span><span class="p">.</span><span class="nx">request</span><span class="p">.</span><span class="nx">use</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">a</span><span class="p">)</span> <span class="p">{</span>
+<div class="highlight"><pre><span></span><code><span class="nx">l</span><span class="p">.</span><span class="nx">a</span><span class="p">.</span><span class="nx">interceptors</span><span class="p">.</span><span class="nx">request</span><span class="p">.</span><span class="nx">use</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">a</span><span class="p">)</span> <span class="p">{</span>
     <span class="k">try</span> <span class="p">{</span>
         <span class="kd">var</span> <span class="nx">n</span> <span class="o">=</span> <span class="o">+</span><span class="k">new</span> <span class="nb">Date</span> <span class="o">-</span> <span class="p">(</span><span class="nx">h</span><span class="p">.</span><span class="nx">difftime</span> <span class="o">?</span> <span class="nx">h</span><span class="p">.</span><span class="nx">difftime</span> <span class="o">:</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1515125653845</span>
             <span class="p">,</span> <span class="nx">e</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
@@ -150,8 +148,7 @@
 <span class="p">},</span> <span class="kd">function</span><span class="p">(</span><span class="nx">a</span><span class="p">)</span> <span class="p">{</span>
     <span class="k">return</span> <span class="nx">i</span><span class="p">.</span><span class="nx">a</span><span class="p">.</span><span class="nx">reject</span><span class="p">(</span><span class="nx">a</span><span class="p">)</span>
 <span class="p">}),</span>
-</pre></div>
-
+</code></pre></div>
 
 <p>代码被用逗号运算符精简了。由于 Chrome 调试器的单步执行是以表达式为单位，因此这里我们无法对重要的变量 t 的每一步转换进行观察调试。</p>
 <p>我们需要对代码进行修改，然后让浏览器运行修改后的代码。方法是劫持 JS 文件。</p>
@@ -180,7 +177,7 @@
 <p>进一步分析还发现引入 Buffer 模块的目的之一就是为了方便 Base64 编码。</p>
 <h2>6. 一锤定音 - Crawler</h2>
 <p>最后写一个50行的简单爬虫来验证分析，抓取 iPhone 免费榜单。</p>
-<div class="highlight"><pre><span></span><span class="ch">#!/usr/bin/env python3</span>
+<div class="highlight"><pre><span></span><code><span class="ch">#!/usr/bin/env python3</span>
 
 <span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">import</span> <span class="nn">json</span>
@@ -230,17 +227,16 @@
     <span class="n">s</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64encode</span><span class="p">(</span><span class="nb">bytes</span><span class="p">(</span><span class="n">encrypt</span><span class="p">(</span><span class="n">s</span><span class="p">),</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;ascii&quot;</span><span class="p">))</span>
     <span class="c1"># 拼接 URL</span>
     <span class="n">params</span><span class="p">[</span><span class="s2">&quot;analysis&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span>
-    <span class="n">url</span> <span class="o">=</span> <span class="s2">&quot;https://api.qimai.cn/rank/indexPlus/brand_id/1?{}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">urlencode</span><span class="p">(</span><span class="n">params</span><span class="p">))</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="s2">&quot;https://api.qimai.cn/rank/indexPlus/brand_id/1?</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">urlencode</span><span class="p">(</span><span class="n">params</span><span class="p">))</span>
     <span class="c1"># 发起请求</span>
     <span class="n">res</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">)</span>
     <span class="n">j</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
 
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="n">main</span><span class="p">()</span>
-</pre></div>
-
+</code></pre></div>
 
 <p>EOF</p>
   </div><!-- /.entry-content -->

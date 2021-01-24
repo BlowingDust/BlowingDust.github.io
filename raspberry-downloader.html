@@ -52,51 +52,46 @@
 <h2>1. 准备工作</h2>
 <p>在淘宝找到相关店家，根据自己的需要选择相应套餐，因为需要预订，大概一周后到货。</p>
 <p>树莓派到手后，先将 Raspbian 系统镜像写入 micro SD 卡，推荐使用 <a href="https://www.raspberrypi.org/documentation/installation/installing-images/README.md">官方教程</a> 提到的 balenaEtcher，十分方便。</p>
-<p><img alt="balenaEtcher" src="images/etchcer.jpg"></p>
+<p><img alt="balenaEtcher" src="/images/etchcer.jpg"></p>
 <p>之后配置远程 SSH 和 wifi（如果选择直接在树莓派上外接显示器和键盘就不用进行这一步），简单来说就是在根目录新建 SSH 文件和 wpa_supplicant.conf 文件，文件内容参考 <a href="https://www.raspberrypi.org/documentation/configuration/wireless/headless.md">官方教程</a> 。</p>
 <p>配置好后，插入 SD 卡启动树莓派，在路由后台管理中找到树莓派的 IP。</p>
-<p><img alt="ip" src="images/piip.png"></p>
+<p><img alt="ip" src="/images/piip.png"></p>
 <p>SSH 远程登录，默认用户名 pi，默认密码 raspberry，完成。（记得修改默认密码</p>
-<p><img alt="ssh" src="images/cmd.png"></p>
+<p><img alt="ssh" src="/images/cmd.png"></p>
 <h2>2. 配置</h2>
 <h3>(1) 更新升级系统</h3>
 <p>由于国内网络环境，需要修改源以免更新速度缓慢，可以 <a href="https://mirror.tuna.tsinghua.edu.cn/help/raspbian/">据此</a> 修改（感谢清华源）。</p>
 <p>Raspbian 基于 Debian，使用 <code>apt upgrade</code> 更新升级。如遇到更新途中卡死、Ctrl+C 无法终止的情况，使用 kill 结束进程，恢复，重启，再更新。</p>
 <h3>(2) 格式化 U 盘</h3>
 <p>U 盘用于存放我们的下载文件，使用 exFAT 格式以便存储超过 4 GB 的文件。sda1 是我的 U 盘设备，请根据自己情况修改。</p>
-<div class="highlight"><pre><span></span>apt install exfat-fuse
+<div class="highlight"><pre><span></span><code>apt install exfat-fuse
 <span class="c1"># 若提示未找到 mkfs.exfat，可将 /usr/sbin 加入 PATH。</span>
 mkfs.exfat /dev/sda1
-</pre></div>
-
+</code></pre></div>
 
 <p>接着修改 /etc/fstab，让系统每次启动都自动挂载 U 盘。</p>
-<div class="highlight"><pre><span></span><span class="c1"># 追加写入，勿删改文件内其它内容</span>
+<div class="highlight"><pre><span></span><code><span class="c1"># 追加写入，勿删改文件内其它内容</span>
 /dev/sda1 /mnt/udisk exfat rw,defaults <span class="m">0</span> <span class="m">0</span>
-</pre></div>
-
+</code></pre></div>
 
 <p>最后使用 <code>mount -a</code> 重新载入配置，检查有无报错。</p>
 <p>额外的，我还将 U 盘路径软链接到用户目录以方便查看。</p>
-<div class="highlight"><pre><span></span>ln -s /mnt/udisk ~/downloads/udisk
-</pre></div>
-
+<div class="highlight"><pre><span></span><code>ln -s /mnt/udisk ~/downloads/udisk
+</code></pre></div>
 
 <h3>(3) 编译安装 qBittorrent</h3>
 <p>其实软件仓库中有 qBittorrent，但我需要的是 <a href="https://github.com/c0re100/qBittorrent-Enhanced-Edition/">qBittorrent-Enhanced-Edition</a>，可以自动封禁如迅雷吸血客户端的 IP。如果你没有这个需求，直接 <code>apt install qBittorrent</code> 即可（或者安装 qBittorrent-nox，无需 GUI）。</p>
 <p>编译需要依赖 Boost、Qt5 等，安装</p>
-<div class="highlight"><pre><span></span>apt install qt5-default qttools5-dev-tools libboost1.67-all-dev libtorrent-rasterbar-dev
-</pre></div>
-
+<div class="highlight"><pre><span></span><code>apt install qt5-default qttools5-dev-tools libboost1.67-all-dev libtorrent-rasterbar-dev
+</code></pre></div>
 
 <p>克隆源码，在其目录执行</p>
-<div class="highlight"><pre><span></span><span class="c1"># --disable-gui: 不需要 GUI</span>
+<div class="highlight"><pre><span></span><code><span class="c1"># --disable-gui: 不需要 GUI</span>
 <span class="c1"># 如果提示无法找到 Boost，需加 --with-boost-libdir 参数</span>
 ./configure --disable-gui --with-boost-libdir<span class="o">=</span>/usr/lib/arm-linux-gnueabihf
 make -j<span class="k">$(</span>nproc<span class="k">)</span>
 make install
-</pre></div>
-
+</code></pre></div>
 
 <p>由于树莓派孱弱的性能，编译过程可能需要十多分钟。</p>
 <p>之后启动 qBittorrent，浏览器远程访问，默认端口 8080，用户名 admin，密码 adminadmin。记得改密码。</p>
@@ -105,14 +100,13 @@ make install
 <h3>(4) 安装 samba</h3>
 <p>为与 Windows 共享文件，需安装 samba，<a href="https://www.raspberrypi.org/documentation/remote-access/samba.md">官方</a> 和网上其它地方都有教程，不细述。</p>
 <p>值得注意的是，如果你和我一样使用了软链接，还需要在 samba 配置文件加入如下内容</p>
-<div class="highlight"><pre><span></span><span class="k">[global]</span>
+<div class="highlight"><pre><span></span><code><span class="k">[global]</span>
 <span class="na">allow insecure wide links</span> <span class="o">=</span> <span class="s">yes</span>
 
 <span class="k">[share]</span>
 <span class="na">follow symlinks</span> <span class="o">=</span> <span class="s">yes</span>
 <span class="na">wide links</span> <span class="o">=</span> <span class="s">yes</span>
-</pre></div>
-
+</code></pre></div>
 
 <p><a href="https://unix.stackexchange.com/a/137192">来源</a></p>
 <p>改好配置后，<code>systemctl restart smdb.service</code> 重启 samba。</p>

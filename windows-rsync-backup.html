@@ -13,8 +13,7 @@
         <link href="/theme/css/highlight.css" rel="stylesheet">
 
 
-    <meta name="tags" content="docker" />
-    <meta name="tags" content="phpMyAdmin" />
+    <meta name="tags" content="rsync" />
 
 </head>
 
@@ -36,7 +35,7 @@
 <section id="content" class="body">
   <header>
     <h2 class="entry-title">
-      <a href="/phpMyAdmin-docker-config.html" rel="bookmark">phpMyAdmin Docker 简单配置</a></h2>
+      <a href="/windows-rsync-backup.html" rel="bookmark">在 Windows 中使用 rsync 备份文件</a></h2>
  
   </header>
 <footer class="post-info">
@@ -44,31 +43,31 @@
         📁 <a href="/category/tech.html">Tech</a>
     </div>
     <p class="tag-info">
- 📌             <a href="/tag/docker.html">docker</a>,            <a href="/tag/phpmyadmin.html">phpMyAdmin</a>    </p>
-    <time class="published" datetime="2019-06-21T16:43:41+08:00">
-      🖊️ 2019-06-21 16:43:41
+ 📌             <a href="/tag/rsync.html">rsync</a>    </p>
+    <time class="published" datetime="2021-01-24T11:11:00+08:00">
+      🖊️ 2021-01-24 11:11:00
     </time>
   </footer><!-- /.post-info -->  <div class="entry-content">
-    <p>phpMyAdmin（以下简称 PMA ）的数据字典（Data Dictionary）对我来说是一个比较有用的功能（实际上我只用这个功能...），可以以网页形式浏览所有表、视图、字段、索引、注释等，在一个有数百张表的数据库中可以快速检索所需信息。</p>
-<p><img alt="image" src="/images/pma_data_dict.png"></p>
-<p>利用 Docker 可以方便快速地在本地部署 PMA。</p>
-<p>下载</p>
-<p><code>docker pull phpmyadmin/phpmyadmin</code></p>
-<p>运行</p>
-<p><code>docker run --name PMA -d -p 8080:80 --restart=always -e PMA_ARBITRARY=1 -v /path/to/phpmyadmin/config.user.inc.php:/etc/phpmyadmin/config.user.inc.php -v /path/to/phpmyadmin/php.ini:/usr/local/etc/php/conf.d/php.ini phpmyadmin/phpmyadmin</code></p>
-<p><code>-e PMA_ARBITRARY=1</code>  表示默认可连接任意数据库。</p>
-<p>同时我挂载了两个文件到容器中，一个是 PMA 的配置文件，另一个是 PHP 的配置文件。原因是 PMA 的 session 默认超时时间太短（1440秒），经常跳转登录页面影响效率。</p>
-<p>config.user.inc.php</p>
-<div class="highlight"><pre><span></span><code><span class="cp">&lt;?php</span>
-<span class="nv">$cfg</span><span class="p">[</span><span class="s1">&#39;LoginCookieValidity&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1440000</span><span class="p">;</span>
+    <p>笔记本使用的是固态硬盘，有掉盘风险，尽管已用 OneDrive 备份了重要文件，但仍有很多文件属于“虽然没那么重要，但如果丢失了也很心痛”的情况。于是决定使用移动固态硬盘做冷备份。</p>
+<p>在 Windows 中，rsync 可通过 Cygwin 安装。</p>
+<p>执行以下命令可进行测试备份：</p>
+<div class="highlight"><pre><span></span><code><span class="err">rsync -gloptrn --delete $srcdir $dstdir</span>
 </code></pre></div>
 
-<p>php.ini</p>
-<div class="highlight"><pre><span></span><code><span class="k">[Session]</span>
-<span class="na">session.gc_maxlifetime</span> <span class="o">=</span> <span class="s">1440000</span>
+<p>参数解析：</p>
+<div class="highlight"><pre><span></span><code><span class="err">g - 保留所属组信息</span>
+<span class="err">l - 保留软链接</span>
+<span class="err">o - 保留所属人信息</span>
+<span class="err">p - 保留权限信息</span>
+<span class="err">t - 保留修改时间</span>
+<span class="err">r - 递归子目录</span>
+<span class="err">n - 测试执行，不进行实际文件复制操作</span>
+<span class="err">delete - 删除目标目录（$dstdir）下无关的文件</span>
 </code></pre></div>
 
-<p>挂载以上两个配置文件后，我们就可以愉快地使用 PMA 了。</p>
+<p>建议开始时先使用文件数较少的目录进行测试，确认无误后，删除参数 n 即可执行实际备份操作。</p>
+<p>经测试，部分文件可能会读取失败，不过这些文件不算问题（比如一些系统文件，以及 OneDrive 已经备份在云端但是未下载到本地的文件)。</p>
+<p>首次备份总计 70G 的文件用时不超过 10 分钟，之后再执行备份同步用时不超过 30 秒，是可接受的速度。</p>
   </div><!-- /.entry-content -->
 </section>
         <footer id="contentinfo" class="body mui--divider-top">
