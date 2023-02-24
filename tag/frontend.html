@@ -46,14 +46,7 @@
   </footer><!-- /.post-info -->                <div class="entry-content"> <p>之前在 V 站上看到一个帖子，内容是楼主想抓取数据的网站做了参数加密，不知如何解密。刚好最近有点空闲时间，可以尝试解密一下网页参数，而且很久没练手了。</p>
 <p>文中会介绍几种分析技巧，需要一点前端知识（总感觉在前端做防爬没什么意义，因为源码都是公开的）。文末附上爬虫 Demo 验证，虽然对于这个案例来说使用 Selenium 可能才是合适的解决方法，但<del>暴力破解才是男人的浪漫！</del> ...嗯本文的重点只是在于分析解密的过程。有些图片因代码过长未包含在内，意会即可。</p>
 <h2>1. 一夫当关 - XHR Breakpoints</h2>
-<p>网站是<a href="https://www.qimai.cn/rank/">七麦数据</a>。我们要抓取的内容是页面上的 App Store 排行榜数据。</p>
-<p>通过分析网络请求我们可以发现，榜单数据是通过 Ajax 请求来获取的。返回的数据格式是明文 Json。</p>
-<p><img alt="image" src="/images/1.png"></p>
-<p>请求参数如下：</p>
-<div class="highlight"><pre><span></span><code><span class="n">analysis</span><span class="o">:</span> <span class="n">dDB4Fi8wUEF</span><span class="o">...(</span><span class="err">太长，略</span><span class="o">)</span>
-<span class="n">brand</span><span class="o">:</span> <span class="n">all</span>
-<span class="n">country</span><span class="o">:</span> <span class="n">cn</span>
-<span class="n">device</span><span class="o">:</span> <span class="n">iphone …</span></code></pre></div> </div><!-- /.entry-content -->
+<p>网站是<a href="https://www.qimai.cn/rank/">七 …</a></p> </div><!-- /.entry-content -->
                 <div class="read-more">
                     <a class="read-more-link" href="/encrypted-compression-javascript-analysis.html">>> Read More</a>
                 </div>

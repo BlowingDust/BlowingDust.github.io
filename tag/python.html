@@ -33,6 +33,29 @@
 
 <ol id="post-list">
         <li><article class="hentry ">
+                <header> <h2 class="entry-title"><a href="/font-code-point.html" rel="bookmark">基于字体字符码点的文字异常检测</a></h2> </header>
+<footer class="post-info">
+    <div class="category-info">
+        📁 <a href="/category/tech.html">Tech</a>
+    </div>
+    <p class="tag-info">
+ 📌             <a href="/tag/python.html">python</a>    </p>
+    <time class="published" datetime="2023-02-24T11:12:00+08:00">
+      🖊️ 2023-02-24 11:12:00
+    </time>
+  </footer><!-- /.post-info -->                <div class="entry-content"> <h2>0</h2>
+<p>本文以《新世纪日汉双解大辞典》为例，介绍一种辞典文本错字的检测方法。
+<br></p>
+<h2>1</h2>
+<p>近日找寻日文辞典，下载《新世纪日汉双解大辞典》后，自行改写CSS样式，变更日文字体为教科书体（UD デジタル 教科書体 N-R，Windows 10 自带字体），然而后续检查中发现个别文字字体样式有异，如图中「边」字。</p>
+<p><img alt="font fallback" src="images/font_fallback.jpg"></p>
+<p>原因何在？首先需要了解字体显示的回退机制（fallback）：在网页中，如果某个字符在CSS指定的字体中不存在，那么排版引擎将根据内置的预设字体作为后备显示方案。</p>
+<p>此处，CSS样式指定的日文字体仅包含日文汉字，无法显示作为中文简体的「边」字，由于回退机制，排版引擎便以衬线字体展示，而 …</p> </div><!-- /.entry-content -->
+                <div class="read-more">
+                    <a class="read-more-link" href="/font-code-point.html">>> Read More</a>
+                </div>
+        </article></li>
+        <li><article class="hentry mui--divider-top ">
                 <header> <h2 class="entry-title"><a href="/encrypted-compression-javascript-analysis.html" rel="bookmark">数据抓取实践：对加密参数及压缩混淆JS的逆向分析</a></h2> </header>
 <footer class="post-info">
     <div class="category-info">
@@ -46,14 +69,7 @@
   </footer><!-- /.post-info -->                <div class="entry-content"> <p>之前在 V 站上看到一个帖子，内容是楼主想抓取数据的网站做了参数加密，不知如何解密。刚好最近有点空闲时间，可以尝试解密一下网页参数，而且很久没练手了。</p>
 <p>文中会介绍几种分析技巧，需要一点前端知识（总感觉在前端做防爬没什么意义，因为源码都是公开的）。文末附上爬虫 Demo 验证，虽然对于这个案例来说使用 Selenium 可能才是合适的解决方法，但<del>暴力破解才是男人的浪漫！</del> ...嗯本文的重点只是在于分析解密的过程。有些图片因代码过长未包含在内，意会即可。</p>
 <h2>1. 一夫当关 - XHR Breakpoints</h2>
-<p>网站是<a href="https://www.qimai.cn/rank/">七麦数据</a>。我们要抓取的内容是页面上的 App Store 排行榜数据。</p>
-<p>通过分析网络请求我们可以发现，榜单数据是通过 Ajax 请求来获取的。返回的数据格式是明文 Json。</p>
-<p><img alt="image" src="/images/1.png"></p>
-<p>请求参数如下：</p>
-<div class="highlight"><pre><span></span><code><span class="n">analysis</span><span class="o">:</span> <span class="n">dDB4Fi8wUEF</span><span class="o">...(</span><span class="err">太长，略</span><span class="o">)</span>
-<span class="n">brand</span><span class="o">:</span> <span class="n">all</span>
-<span class="n">country</span><span class="o">:</span> <span class="n">cn</span>
-<span class="n">device</span><span class="o">:</span> <span class="n">iphone …</span></code></pre></div> </div><!-- /.entry-content -->
+<p>网站是<a href="https://www.qimai.cn/rank/">七 …</a></p> </div><!-- /.entry-content -->
                 <div class="read-more">
                     <a class="read-more-link" href="/encrypted-compression-javascript-analysis.html">>> Read More</a>
                 </div>
@@ -81,7 +97,18 @@
         <span class="k">for</span> <span class="n">image</span> <span class="ow">in</span> <span class="n">images</span><span class="p">:</span>
             <span class="n">image_item</span> <span class="o">=</span> <span class="n">ImageItem</span><span class="p">()</span>
             <span class="n">image_item</span><span class="p">[</span><span class="s1">&#39;img_url&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">urljoin</span><span class="p">(</span><span class="n">image</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
-            <span class="k">yield …</span></code></pre></div> </div><!-- /.entry-content -->
+            <span class="k">yield</span> <span class="n">image_item</span>
+
+        <span class="n">urls</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">xpath</span><span class="p">(</span><span class="s1">&#39;//a/@href&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">extract</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">url</span> <span class="ow">in</span> <span class="n">urls</span><span class="p">:</span>
+            <span class="n">next_url</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">urljoin</span><span class="p">(</span><span class="n">url</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+            <span class="k">yield</span> <span class="n">Request</span><span class="p">(</span><span class="n">next_url</span><span class="p">)</span>
+</code></pre></div>
+
+<p>我想了半天都不明白为什么，以为是过滤器的问题，查了半天资料仍没解决。 后来偶然看了 Spider 源码，才发现坑爹之处。</p>
+<p>原来源码的 start_requests 是这样写的（已忽略无关代码）</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">start_requests</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">url</span> <span class="ow">in</span> <span class="bp">self …</span></code></pre></div> </div><!-- /.entry-content -->
                 <div class="read-more">
                     <a class="read-more-link" href="/scrapy-start-requests-trap.html">>> Read More</a>
                 </div>

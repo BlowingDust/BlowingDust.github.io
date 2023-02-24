@@ -46,22 +46,21 @@
   </footer><!-- /.post-info -->                <div class="entry-content"> <p>笔记本使用的是固态硬盘，有掉盘风险，尽管已用 OneDrive 备份了重要文件，但仍有很多文件属于“虽然没那么重要，但如果丢失了也很心痛”的情况。于是决定使用移动固态硬盘做冷备份。</p>
 <p>在 Windows 中，rsync 可通过 Cygwin 安装。</p>
 <p>执行以下命令可进行测试备份：</p>
-<div class="highlight"><pre><span></span><code><span class="err">rsync -gloptrn --delete $srcdir $dstdir</span>
+<div class="highlight"><pre><span></span><code>rsync -gloptrn --delete $srcdir $dstdir
 </code></pre></div>
 
 <p>参数解析：</p>
-<div class="highlight"><pre><span></span><code><span class="err">g - 保留所属组信息</span>
-<span class="err">l - 保留软链接</span>
-<span class="err">o - 保留所属人信息</span>
-<span class="err">p - 保留权限信息</span>
-<span class="err">t - 保留修改时间</span>
-<span class="err">r - 递归子目录</span>
-<span class="err">n - 测试执行，不进行实际文件复制操作</span>
-<span class="err">delete - 删除目标目录（$dstdir）下无关的文件</span>
+<div class="highlight"><pre><span></span><code>g - 保留所属组信息
+l - 保留软链接
+o - 保留所属人信息
+p - 保留权限信息
+t - 保留修改时间
+r - 递归子目录
+n - 测试执行，不进行实际文件复制操作
+delete - 删除目标目录（$dstdir）下无关的文件
 </code></pre></div>
 
-<p>建议开始时先使用文件数较少的目录进行测试，确认无误后，删除参数 n 即可执行实际备份操作。</p>
-<p>经测试，部分文件可能会读取失败 …</p> </div><!-- /.entry-content -->
+<p>建议开始时先使用文件数较少的目录进行测试，确认无 …</p> </div><!-- /.entry-content -->
                 <div class="read-more">
                     <a class="read-more-link" href="/windows-rsync-backup.html">>> Read More</a>
                 </div>

@@ -64,33 +64,33 @@
 <p>Raspbian 基于 Debian，使用 <code>apt upgrade</code> 更新升级。如遇到更新途中卡死、Ctrl+C 无法终止的情况，使用 kill 结束进程，恢复，重启，再更新。</p>
 <h3>(2) 格式化 U 盘</h3>
 <p>U 盘用于存放我们的下载文件，使用 exFAT 格式以便存储超过 4 GB 的文件。sda1 是我的 U 盘设备，请根据自己情况修改。</p>
-<div class="highlight"><pre><span></span><code>apt install exfat-fuse
+<div class="highlight"><pre><span></span><code>apt<span class="w"> </span>install<span class="w"> </span>exfat-fuse
 <span class="c1"># 若提示未找到 mkfs.exfat，可将 /usr/sbin 加入 PATH。</span>
-mkfs.exfat /dev/sda1
+mkfs.exfat<span class="w"> </span>/dev/sda1
 </code></pre></div>
 
 <p>接着修改 /etc/fstab，让系统每次启动都自动挂载 U 盘。</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># 追加写入，勿删改文件内其它内容</span>
-/dev/sda1 /mnt/udisk exfat rw,defaults <span class="m">0</span> <span class="m">0</span>
+/dev/sda1<span class="w"> </span>/mnt/udisk<span class="w"> </span>exfat<span class="w"> </span>rw,defaults<span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">0</span>
 </code></pre></div>
 
 <p>最后使用 <code>mount -a</code> 重新载入配置，检查有无报错。</p>
 <p>额外的，我还将 U 盘路径软链接到用户目录以方便查看。</p>
-<div class="highlight"><pre><span></span><code>ln -s /mnt/udisk ~/downloads/udisk
+<div class="highlight"><pre><span></span><code>ln<span class="w"> </span>-s<span class="w"> </span>/mnt/udisk<span class="w"> </span>~/downloads/udisk
 </code></pre></div>
 
 <h3>(3) 编译安装 qBittorrent</h3>
 <p>其实软件仓库中有 qBittorrent，但我需要的是 <a href="https://github.com/c0re100/qBittorrent-Enhanced-Edition/">qBittorrent-Enhanced-Edition</a>，可以自动封禁如迅雷吸血客户端的 IP。如果你没有这个需求，直接 <code>apt install qBittorrent</code> 即可（或者安装 qBittorrent-nox，无需 GUI）。</p>
 <p>编译需要依赖 Boost、Qt5 等，安装</p>
-<div class="highlight"><pre><span></span><code>apt install qt5-default qttools5-dev-tools libboost1.67-all-dev libtorrent-rasterbar-dev
+<div class="highlight"><pre><span></span><code>apt<span class="w"> </span>install<span class="w"> </span>qt5-default<span class="w"> </span>qttools5-dev-tools<span class="w"> </span>libboost1.67-all-dev<span class="w"> </span>libtorrent-rasterbar-dev
 </code></pre></div>
 
 <p>克隆源码，在其目录执行</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># --disable-gui: 不需要 GUI</span>
 <span class="c1"># 如果提示无法找到 Boost，需加 --with-boost-libdir 参数</span>
-./configure --disable-gui --with-boost-libdir<span class="o">=</span>/usr/lib/arm-linux-gnueabihf
-make -j<span class="k">$(</span>nproc<span class="k">)</span>
-make install
+./configure<span class="w"> </span>--disable-gui<span class="w"> </span>--with-boost-libdir<span class="o">=</span>/usr/lib/arm-linux-gnueabihf
+make<span class="w"> </span>-j<span class="k">$(</span>nproc<span class="k">)</span>
+make<span class="w"> </span>install
 </code></pre></div>
 
 <p>由于树莓派孱弱的性能，编译过程可能需要十多分钟。</p>
@@ -101,11 +101,11 @@ make install
 <p>为与 Windows 共享文件，需安装 samba，<a href="https://www.raspberrypi.org/documentation/remote-access/samba.md">官方</a> 和网上其它地方都有教程，不细述。</p>
 <p>值得注意的是，如果你和我一样使用了软链接，还需要在 samba 配置文件加入如下内容</p>
 <div class="highlight"><pre><span></span><code><span class="k">[global]</span>
-<span class="na">allow insecure wide links</span> <span class="o">=</span> <span class="s">yes</span>
+<span class="na">allow insecure wide links</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">yes</span>
 
 <span class="k">[share]</span>
-<span class="na">follow symlinks</span> <span class="o">=</span> <span class="s">yes</span>
-<span class="na">wide links</span> <span class="o">=</span> <span class="s">yes</span>
+<span class="na">follow symlinks</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">yes</span>
+<span class="na">wide links</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">yes</span>
 </code></pre></div>
 
 <p><a href="https://unix.stackexchange.com/a/137192">来源</a></p>

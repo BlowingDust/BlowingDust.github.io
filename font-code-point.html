@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="referrer" content="no-referrer">
+          <title>Dust's Blog</title>
+        <meta charset="utf-8" />
+
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/muicss@0.9.41/dist/css/mui.min.css"
+              integrity="sha256-oX1CoieDE574GYL7nKAFSFOt8BdQzeKvATYS4VqFqNw=" crossorigin="anonymous">
+        <link href="/theme/css/main.css" rel="stylesheet">
+        <link href="/theme/css/highlight.css" rel="stylesheet">
+
+
+    <meta name="tags" content="python" />
+
+</head>
+
+<body id="index" class="home">
+  <div id="container" class="mui-container">
+        <header id="banner" class="body">
+                <h1><a href="/">Dust's Blog <strong></strong></a></h1>
+        </header><!-- /#banner -->
+        <nav id="menu"><ul>
+            <li>
+              <div class="index-cat"><a href="/">Index</a></div>
+            </li>
+              <li class="active">
+                <div  class="last-cat" >
+                  <a href="/category/tech.html">Tech</a>
+                </div>
+              </li>
+        </ul></nav><!-- /#menu -->
+<section id="content" class="body">
+  <header>
+    <h2 class="entry-title">
+      <a href="/font-code-point.html" rel="bookmark">基于字体字符码点的文字异常检测</a></h2>
+ 
+  </header>
+<footer class="post-info">
+    <div class="category-info">
+        📁 <a href="/category/tech.html">Tech</a>
+    </div>
+    <p class="tag-info">
+ 📌             <a href="/tag/python.html">python</a>    </p>
+    <time class="published" datetime="2023-02-24T11:12:00+08:00">
+      🖊️ 2023-02-24 11:12:00
+    </time>
+  </footer><!-- /.post-info -->  <div class="entry-content">
+    <h2>0</h2>
+<p>本文以《新世纪日汉双解大辞典》为例，介绍一种辞典文本错字的检测方法。
+<br></p>
+<h2>1</h2>
+<p>近日找寻日文辞典，下载《新世纪日汉双解大辞典》后，自行改写CSS样式，变更日文字体为教科书体（UD デジタル 教科書体 N-R，Windows 10 自带字体），然而后续检查中发现个别文字字体样式有异，如图中「边」字。</p>
+<p><img alt="font fallback" src="images/font_fallback.jpg"></p>
+<p>原因何在？首先需要了解字体显示的回退机制（fallback）：在网页中，如果某个字符在CSS指定的字体中不存在，那么排版引擎将根据内置的预设字体作为后备显示方案。</p>
+<p>此处，CSS样式指定的日文字体仅包含日文汉字，无法显示作为中文简体的「边」字，由于回退机制，排版引擎便以衬线字体展示，而教科书体属于手书字体，与衬线字体外观差异较大，因此十分显眼。
+<br></p>
+<h2>2</h2>
+<p>受此启发，想到一种辞典文字错误检测方法：可将日文字体所含字符的码点（code point）汇总成表，利用程序检测辞典中每个日文字符，若无法在汇总表中找到，则说明该字符可能不属于日文文字系统。</p>
+<p>另，网络上有民间总结的日文字符汇总7000余，也可直接制成汇总表，但教科书体所含字符数更多，有8000余，且感觉上更正式和规范，因此选用后者。</p>
+<p>以 python 为例，制表代码如下</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">fontTools.ttLib</span> <span class="kn">import</span> <span class="n">TTFont</span>
+<span class="k">def</span> <span class="nf">get_table</span><span class="p">():</span>
+    <span class="n">code_table</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="n">fontpath</span> <span class="o">=</span> <span class="s1">&#39;UDDigiKyokashoN-R.ttc&#39;</span>
+    <span class="n">font</span> <span class="o">=</span> <span class="n">TTFont</span><span class="p">(</span><span class="n">fontpath</span><span class="p">,</span> <span class="n">fontNumber</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>   
+    <span class="k">for</span> <span class="n">cmap</span> <span class="ow">in</span> <span class="n">font</span><span class="p">[</span><span class="s1">&#39;cmap&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">tables</span><span class="p">:</span>
+        <span class="n">code_table</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">cmap</span><span class="o">.</span><span class="n">cmap</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="k">return</span> <span class="n">code_table</span>
+</code></pre></div>
+
+<h2>3</h2>
+<p>实际执行中需要忽略一些特殊字符，虽然它们既不在字体中，也不属于日文字符，但是在辞典中大致是正常使用（粗看，涉及词条过多，无法一一校对）。</p>
+<p>已忽略的特殊字符如下：</p>
+<div class="highlight"><pre><span></span><code>➪ © ® ¯ Å Á Æ Ø ã å æ ð õ ø ý ÿ ā ć Č č Ē ē ę ě ğ Ī ī İ Ł ł ń ň ŋ Ō ō œ ř Ś ś ş Š š ū ź ż ž ǎ ɔ ɡ ɦ ʃ ʒ ʔ ː ̣ ς ḍ Ḥ ḥ ṃ ṅ ṇ Ṛ ṛ ṣ ṭ Ẓ ẓ ộ ℥ ∶ ∼ ⋅ ⋯ ◦ ♩ ♮ ⚊ ⚋ ⺗ ⺤  ⺥ ⺩ ⺿ 〻 〽 ㊜ ㋐ ㋑
+</code></pre></div>
+
+<p>最终，扫描出异常字符587个，涉及异常字符的词条1756个。</p>
+  </div><!-- /.entry-content -->
+</section>
+        <footer id="contentinfo" class="body mui--divider-top">
+          <a rel="license" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh">
+            <img id="cc" src="/images/cc.80x15.png" alt="CC BY-SA"></a>
+                <address id="about" class="vcard body">
+                Powered by <a href="https://github.com/getpelican/pelican">Pelican</a>.
+                Theme <a href="/">Autism</a>.
+                </address><!-- /#about -->
+        </footer><!-- /#contentinfo -->
+  </div>
+
+  <script defer src="/theme/js/image.js"></script>
+</body>
+</html>

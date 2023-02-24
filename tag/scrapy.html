@@ -55,7 +55,18 @@
         <span class="k">for</span> <span class="n">image</span> <span class="ow">in</span> <span class="n">images</span><span class="p">:</span>
             <span class="n">image_item</span> <span class="o">=</span> <span class="n">ImageItem</span><span class="p">()</span>
             <span class="n">image_item</span><span class="p">[</span><span class="s1">&#39;img_url&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">urljoin</span><span class="p">(</span><span class="n">image</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
-            <span class="k">yield …</span></code></pre></div> </div><!-- /.entry-content -->
+            <span class="k">yield</span> <span class="n">image_item</span>
+
+        <span class="n">urls</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">xpath</span><span class="p">(</span><span class="s1">&#39;//a/@href&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">extract</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">url</span> <span class="ow">in</span> <span class="n">urls</span><span class="p">:</span>
+            <span class="n">next_url</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">urljoin</span><span class="p">(</span><span class="n">url</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+            <span class="k">yield</span> <span class="n">Request</span><span class="p">(</span><span class="n">next_url</span><span class="p">)</span>
+</code></pre></div>
+
+<p>我想了半天都不明白为什么，以为是过滤器的问题，查了半天资料仍没解决。 后来偶然看了 Spider 源码，才发现坑爹之处。</p>
+<p>原来源码的 start_requests 是这样写的（已忽略无关代码）</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">start_requests</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">url</span> <span class="ow">in</span> <span class="bp">self …</span></code></pre></div> </div><!-- /.entry-content -->
                 <div class="read-more">
                     <a class="read-more-link" href="/scrapy-start-requests-trap.html">>> Read More</a>
                 </div>
