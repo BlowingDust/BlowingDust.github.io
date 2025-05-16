@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html>
+<head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="referrer" content="no-referrer">
+          <title>Dust's Blog</title>
+        <meta charset="utf-8" />
+
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/muicss@0.9.41/dist/css/mui.min.css"
+              integrity="sha256-oX1CoieDE574GYL7nKAFSFOt8BdQzeKvATYS4VqFqNw=" crossorigin="anonymous">
+        <link href="/theme/css/main.css" rel="stylesheet">
+        <link href="/theme/css/highlight.css" rel="stylesheet">
+
+
+
+</head>
+
+<body id="index" class="home">
+  <div id="container" class="mui-container">
+        <header id="banner" class="body">
+                <h1><a href="/">Dust's Blog <strong></strong></a></h1>
+        </header><!-- /#banner -->
+        <nav id="menu"><ul>
+            <li>
+              <div class="index-cat"><a href="/">Index</a></div>
+            </li>
+              <li class="active">
+                <div  class="last-cat" >
+                  <a href="/category/tech.html">Tech</a>
+                </div>
+              </li>
+        </ul></nav><!-- /#menu -->
+<section id="content" class="body">
+  <header>
+    <h2 class="entry-title">
+      <a href="/PVE-configuration-for-AMD-GPU-passthrough.html" rel="bookmark">PVE 配置 AMD 显卡直通</a></h2>
+ 
+  </header>
+<footer class="post-info">
+    <div class="category-info">
+        📁 <a href="/category/tech.html">Tech</a>
+    </div>
+    <time class="published" datetime="2025-05-16T16:34:00+08:00">
+      🖊️ 2025-05-16 16:34:00
+    </time>
+  </footer><!-- /.post-info -->  <div class="entry-content">
+    <p>本篇文章主要是 PVE 配置 AMD 显卡直通的教程。原本以为要花几天时间折腾，结果只花了一个晚上就配置完成，没有想象中的复杂。大部分教程内容由 ChatGPT 编写，我根据实际情况和遇到的问题，作一些改动和补充说明。</p>
+<hr>
+<h2>🎯 教程目标</h2>
+<p>将 AMD 独立显卡通过 IOMMU 技术直通给 Proxmox VE（PVE）中的 Windows 虚拟机，从而在虚拟机中获得接近原生的图形性能。</p>
+<hr>
+<h2>✅ 教程前提条件</h2>
+<h3>硬件要求：</h3>
+<ul>
+<li>支持虚拟化的 CPU（支持 AMD-V 或 Intel VT-d）</li>
+<li>支持 IOMMU 的主板（开启 BIOS 中的 IOMMU 或 VT-d）</li>
+<li>AMD 独立显卡</li>
+</ul>
+<h3>软件环境：</h3>
+<ul>
+<li>Proxmox VE 7.x 或 8.x</li>
+<li>Windows 10/11 虚拟机</li>
+</ul>
+<hr>
+<p><strong>【补充】</strong></p>
+<p>我的实际环境如下：</p>
+<div class="highlight"><pre><span></span><code>CPU：AMD Ryzen R9
+GPU：AMD Radeon
+OS：Windows 10
+PVE 8.4.0
+</code></pre></div>
+
+<p>可以在已有的系统上配置显卡直通，也可以先配置好显卡直通后再装系统。我的情况是前者。</p>
+<hr>
+<h2>🧰 步骤一：启用 IOMMU</h2>
+<h3>1. 编辑 GRUB 配置文件</h3>
+<div class="highlight"><pre><span></span><code>nano<span class="w"> </span>/etc/default/grub
+</code></pre></div>
+
+<p>找到以下行：</p>
+<div class="highlight"><pre><span></span><code><span class="nv">GRUB_CMDLINE_LINUX_DEFAULT</span><span class="o">=</span><span class="s2">&quot;quiet&quot;</span>
+</code></pre></div>
+
+<p>修改为：</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># 如果是 AMD CPU</span>
+<span class="nv">GRUB_CMDLINE_LINUX_DEFAULT</span><span class="o">=</span><span class="s2">&quot;quiet amd_iommu=on&quot;</span>
+
+<span class="c1"># 如果是 Intel CPU</span>
+<span class="c1"># GRUB_CMDLINE_LINUX_DEFAULT=&quot;quiet intel_iommu=on&quot;</span>
+</code></pre></div>
+
+<h3>2. 更新 GRUB 和 Initramfs：</h3>
+<div class="highlight"><pre><span></span><code>update-grub
+update-initramfs<span class="w"> </span>-u<span class="w"> </span>-k<span class="w"> </span>all
+</code></pre></div>
+
+<hr>
+<p><strong>【问题】</strong></p>
+<p>这里我遇到一个奇怪的问题：PVE 找不到 update-grub 命令，而且是在已安装 grub2-common、<code>$PATH</code> 已加入相关路径的情况下。</p>
+<p>解决方法是通过 <code>dpkg -S update-grub</code> 找到 update-grub 安装路径，直接使用全路径执行命令。</p>
+<div class="highlight"><pre><span></span><code>root@pve:~#<span class="w"> </span>dpkg<span class="w"> </span>-S<span class="w"> </span>update-grub
+grub2-common:<span class="w"> </span>/etc/kernel/postinst.d/zz-update-grub
+grub2-common:<span class="w"> </span>/usr/share/man/man8/update-grub2.8.gz
+grub2-common:<span class="w"> </span>/etc/kernel/postrm.d/zz-update-grub
+grub2-common:<span class="w"> </span>/usr/sbin/update-grub2
+grub2-common:<span class="w"> </span>/usr/share/man/man8/update-grub.8.gz
+grub2-common:<span class="w"> </span>/usr/sbin/update-grub
+</code></pre></div>
+
+<p>update-grub 在如上内容的最后一行。后来重启 PVE 后，未能复现该问题。之后如果我遇到了什么奇怪的无法解决的问题，尝试重启各种服务后总能解决，虽然不知道为什么。</p>
+<h3>3. 重启系统：</h3>
+<div class="highlight"><pre><span></span><code>reboot
+</code></pre></div>
+
+<hr>
+<h2>🧱 步骤二：验证 IOMMU 是否生效</h2>
+<div class="highlight"><pre><span></span><code>dmesg<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-e<span class="w"> </span>DMAR<span class="w"> </span>-e<span class="w"> </span>IOMMU
+</code></pre></div>
+
+<p>如果看到 AMD IOMMU 开启的日志，说明已成功。</p>
+<hr>
+<h2>🔍 步骤三：查找并绑定显卡设备</h2>
+<h3>1. 查看你的显卡 PCI 设备编号：</h3>
+<div class="highlight"><pre><span></span><code>lspci<span class="w"> </span>-nn<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-i<span class="w"> </span>vga
+lspci<span class="w"> </span>-nn<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-i<span class="w"> </span>audio
+</code></pre></div>
+
+<p>假设输出如下（你的可能不同）：</p>
+<div class="highlight"><pre><span></span><code><span class="mi">01</span><span class="o">:</span><span class="mf">00.0</span><span class="w"> </span><span class="n">VGA</span><span class="w"> </span><span class="n">compatible</span><span class="w"> </span><span class="n">controller</span><span class="w"> </span><span class="o">[</span><span class="mi">0300</span><span class="o">]:</span><span class="w"> </span><span class="n">Advanced</span><span class="w"> </span><span class="n">Micro</span><span class="w"> </span><span class="n">Devices</span><span class="o">,</span><span class="w"> </span><span class="n">Inc</span><span class="o">.</span><span class="w"> </span><span class="o">[</span><span class="n">AMD</span><span class="o">/</span><span class="n">ATI</span><span class="o">]</span><span class="w"> </span><span class="n">RX</span><span class="w"> </span><span class="mi">580</span><span class="w"> </span><span class="o">[</span><span class="mi">1002</span><span class="o">:</span><span class="mi">67</span><span class="n">df</span><span class="o">]</span>
+<span class="mi">01</span><span class="o">:</span><span class="mf">00.1</span><span class="w"> </span><span class="n">Audio</span><span class="w"> </span><span class="n">device</span><span class="w"> </span><span class="o">[</span><span class="mi">0403</span><span class="o">]:</span><span class="w"> </span><span class="n">Advanced</span><span class="w"> </span><span class="n">Micro</span><span class="w"> </span><span class="n">Devices</span><span class="o">,</span><span class="w"> </span><span class="n">Inc</span><span class="o">.</span><span class="w"> </span><span class="o">[</span><span class="n">AMD</span><span class="o">/</span><span class="n">ATI</span><span class="o">]</span><span class="w"> </span><span class="n">HDMI</span><span class="w"> </span><span class="n">Audio</span><span class="w"> </span><span class="o">[</span><span class="mi">1002</span><span class="o">:</span><span class="n">aaf0</span><span class="o">]</span>
+</code></pre></div>
+
+<hr>
+<p><strong>【补充】</strong></p>
+<p>如果输出了多个音频设备（Audio device），是正常情况，我的有三个。</p>
+<p>注意例子给出的两个 PCI 设备是同一个 IOMMU 组，识别方法（大概）是它们的首两位数字相同，只有最后一位不同。</p>
+<p>这里也会输出不同 IOMMU 组的设备，只是同组的设备下面会有特别处理，不同组的可忽略。</p>
+<h3>2. 编辑 vfio 配置文件</h3>
+<p>创建文件：</p>
+<div class="highlight"><pre><span></span><code>nano<span class="w"> </span>/etc/modprobe.d/vfio.conf
+</code></pre></div>
+
+<p>添加以下内容（使用你的设备 ID）：</p>
+<div class="highlight"><pre><span></span><code>options<span class="w"> </span>vfio-pci<span class="w"> </span><span class="nv">ids</span><span class="o">=</span><span class="m">1002</span>:67df,1002:aaf0
+</code></pre></div>
+
+<hr>
+<p><strong>【补充】</strong></p>
+<p>这里 ids 后即为同一个 IOMMU 组的两个设备 ID：1002:67df,1002:aaf0</p>
+<h3>3. 屏蔽 amdgpu 等驱动加载：</h3>
+<div class="highlight"><pre><span></span><code><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;blacklist radeon&quot;</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>/etc/modprobe.d/blacklist.conf
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;blacklist amdgpu&quot;</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>/etc/modprobe.d/blacklist.conf
+</code></pre></div>
+
+<hr>
+<p><strong>【补充】</strong></p>
+<p>我这里 PVE 似乎有自己的 blacklist 在 <code>/etc/modprobe.d/pve-blacklist.conf</code>，追加这里也没问题。</p>
+<h3>4. 更新 initramfs：</h3>
+<div class="highlight"><pre><span></span><code>update-initramfs<span class="w"> </span>-u<span class="w"> </span>-k<span class="w"> </span>all
+</code></pre></div>
+
+<h3>5. 重启系统：</h3>
+<div class="highlight"><pre><span></span><code>reboot
+</code></pre></div>
+
+<hr>
+<h2>🧪 步骤四：验证设备是否绑定 vfio</h2>
+<div class="highlight"><pre><span></span><code>lspci<span class="w"> </span>-nnk<span class="w"> </span>-d<span class="w"> </span><span class="m">1002</span>:67df
+</code></pre></div>
+
+<p>输出中应包含：</p>
+<div class="highlight"><pre><span></span><code>Kernel driver in use: vfio-pci
+</code></pre></div>
+
+<p>如果是 <code>amdgpu</code> 而不是 <code>vfio-pci</code>，说明没有成功屏蔽驱动。</p>
+<hr>
+<p><strong>【问题】</strong></p>
+<p>我这里没有屏蔽成功。先检查确认：在 blacklist 的显卡设备、音频设备及其 ID 没有错误。
+如果无误，执行以下两项：</p>
+<h3>✅ 1. <strong>强制优先加载 vfio 模块，屏蔽 amdgpu 提前加载</strong></h3>
+<p>编辑 initramfs 配置文件：</p>
+<div class="highlight"><pre><span></span><code>nano<span class="w"> </span>/etc/initramfs-tools/modules
+</code></pre></div>
+
+<p>添加以下内容：</p>
+<div class="highlight"><pre><span></span><code><span class="nx">vfio</span>
+<span class="nx">vfio_pci</span>
+<span class="nx">vfio_iommu_type1</span>
+<span class="nx">vfio_virqfd</span>
+</code></pre></div>
+
+<h3>✅ 2. <strong>更新 initramfs 和重启</strong></h3>
+<div class="highlight"><pre><span></span><code>update-initramfs<span class="w"> </span>-u<span class="w"> </span>-k<span class="w"> </span>all
+update-grub
+reboot
+</code></pre></div>
+
+<p>我执行完成后成功解决问题，如果你仍然无法绑定 vfio，请询问 ChatGPT 获取更多解决方案。为避免文章冗长，此处省略其它方案。</p>
+<hr>
+<h2>💻 步骤五：配置 Windows 虚拟机</h2>
+<ol>
+<li>
+<p>创建一个新的 Windows VM（建议 Win10/11）</p>
+</li>
+<li>
+<p>添加 PCI 设备直通（在 VM 的“硬件”界面中点击“添加” → “PCI 设备”）</p>
+</li>
+<li>
+<p>选择你的显卡设备（VGA 和音频都加上）</p>
+</li>
+<li>
+<p>启用：</p>
+<ul>
+<li>“All functions”</li>
+<li>“Primary GPU”</li>
+<li>“PCIe”</li>
+<li>“ROM-Bar” （有时可选，有问题再取消）</li>
+<li>“拷贝 BIOS ROM” （可选，可自制或提取显卡 VBIOS）</li>
+</ul>
+</li>
+<li>
+<p>修改 VM 配置文件（VM ID 改为你的，示例是 100），加入以下内容：</p>
+</li>
+</ol>
+<div class="highlight"><pre><span></span><code>nano<span class="w"> </span>/etc/pve/qemu-server/100.conf
+</code></pre></div>
+
+<p>添加或修改以下项：</p>
+<div class="highlight"><pre><span></span><code>cpu:<span class="w"> </span>host,hidden<span class="o">=</span><span class="m">1</span>,flags<span class="o">=</span>+pcid<span class="p">;</span>+aes
+machine:<span class="w"> </span>q35
+bios:<span class="w"> </span>ovmf
+args:<span class="w"> </span>-cpu<span class="w"> </span>host,kvm<span class="o">=</span>off
+</code></pre></div>
+
+<hr>
+<p><strong>【补充】</strong></p>
+<p>bios 也可选默认（SeaBIOS），无影响。</p>
+<p>注意，虽然 ChatGPT 教程说也要加上音频设备，但是如果我加上反而会导致报错而无法启动。在任务日志中可看到 <code>TASK ERROR: device '0000:0*:00.1' assigned more than once</code> 的信息，表示虚拟机重复添加了同一块 PCI 设备。因此我只添加了显卡设备，结果成功启动。</p>
+<hr>
+<h2>🪟 步骤六：启动 Windows 安装并安装 AMD 驱动</h2>
+<ol>
+<li>安装 Windows 10/11（使用 VNC）</li>
+<li>安装完成后，安装 AMD 显卡官方驱动：<a href="https://www.amd.com/en/support">https://www.amd.com/en/support</a></li>
+<li>如果显卡连接了显示器，现在你可以直接在外接显示器上看到 Windows 画面。</li>
+</ol>
+<hr>
+<p><strong>【问题】</strong></p>
+<p>先说<strong>第一点</strong>，我在启动 VNC 的时候报错，任务日志如下：</p>
+<div class="highlight"><pre><span></span><code>VM 10* qmp command &#39;set_password&#39; failed - Could not set password  
+TASK ERROR: Failed to run vncproxy.
+</code></pre></div>
+
+<p>这是由于把物理显卡直通给虚拟机当作主显卡了，而导致 PVE 的 VNC（虚拟显卡）接口无法使用。</p>
+<p>解决方法是给虚拟机添加或修改「显示」为「标准 VGA（std）」，相当于添加了虚拟显卡给 VNC 使用。</p>
+<p>然后<strong>第二点</strong>，我安装完 AMD 显卡驱动后，AMD 的 Adrenalin Edition 软件提示类似「无法找到显卡」的信息，重启虚拟机一直黑屏，PVE 任务日志显示 <code>TASK ERROR: connection timed out</code>。</p>
+<p>在尝试最后「常见问题处理」的解决方法前，试着重启了 PVE，结果成功启动 Windows，也成功识别出了显卡型号。</p>
+<p>最后<strong>第三点</strong>，我没能看到 Windows 画面，不过我并不需要显卡外接显示器，一直用笔记本 RDP 连接远程桌面，所以无所谓了。</p>
+<p>只是我在解决第二项问题的过程中遇到第三点问题，所以姑且提一下，至于原因及解决方法没细究。</p>
+<hr>
+<h2>📌 常见问题处理</h2>
+<table>
+<thead>
+<tr>
+<th>问题</th>
+<th>解决方法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>显卡直通后启动黑屏</td>
+<td>尝试提取并加载 VBIOS，或关闭“Primary GPU” 选项</td>
+</tr>
+<tr>
+<td>重启虚拟机后黑屏或无法启动</td>
+<td>RX 系列部分显卡不支持 reset，尝试使用 vendor-reset 模块</td>
+</tr>
+<tr>
+<td>驱动安装后蓝屏</td>
+<td>确保使用了最新驱动，或尝试“最小安装”模式</td>
+</tr>
+<tr>
+<td>PVE 没有显卡输出</td>
+<td>需要第二张显卡供 PVE 使用，或启用 SSH 远程管理</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2>我的其它补充</h2>
+<h3>SMB VS NFS</h3>
+<p>Windows 上对 NFS 的支持有限，因此 NFS 不如 SMB 对 Windows 友好。好像 Windows10 不支持 NFSv4，搭建 NFS 服务的时候请注意。</p>
+<h3>原神</h3>
+<p>在运行原神的时候，无法转动视角。原因如下：</p>
+<blockquote>
+<p>RDP只发送鼠标的绝对位置，这导致在远程桌面中，像原神这样依赖于鼠标的相对位移的 3D 游戏无法操作（无法转动视角）。</p>
+</blockquote>
+<p>解决方法可使用这个项目开发的工具 <a href="https://github.com/xyzlancehe/rdp_relative_mouse">RDP Relative Mouse</a>。</p>
+<p>偶尔有失效的情况。其它有相同问题的 3D 游戏应该也可以使用。</p>
+<p>另外，这个工具只能在主显示中使用，因此如果你有多个显示器，需要将原神所在的显示器设为主显示器。</p>
+<hr>
+<p><img alt="PVE" src="images/pve.png"></p>
+  </div><!-- /.entry-content -->
+</section>
+        <footer id="contentinfo" class="body mui--divider-top">
+          <a rel="license" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh">
+            <img id="cc" src="/images/cc.80x15.png" alt="CC BY-SA"></a>
+                <address id="about" class="vcard body">
+                Powered by <a href="https://github.com/getpelican/pelican">Pelican</a>.
+                Theme <a href="/">Autism</a>.
+                </address><!-- /#about -->
+        </footer><!-- /#contentinfo -->
+  </div>
+
+  <script defer src="/theme/js/image.js"></script>
+</body>
+</html>

@@ -32,8 +32,12 @@ pre {
 
 code {
     background-color: #3c3f41;
-    padding: 0px 3px;
+    padding: 0rem 0.2rem;
     border-radius: 3px;
+}
+
+pre > code {
+    padding: 0;
 }
 
 .category-info, .tag-info {
@@ -121,4 +125,12 @@ address#about, #cc {
     background-color: #3c3f41;
     text-decoration: none;
     border-radius: 5px;
+}
+
+td {
+    padding: 0.2rem;
+}
+
+hr {
+    background-color: #3C3F41;
 }
